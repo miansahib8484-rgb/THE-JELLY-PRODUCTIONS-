@@ -113,7 +113,6 @@ PASSWORD_RESET_TIMEOUT = 2 * 60 * 60          # reset links stay valid for two h
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_ROOT.mkdir(exist_ok=True)       # keeps WhiteNoise quiet before the first collectstatic
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage' if (DEBUG or TESTING)
