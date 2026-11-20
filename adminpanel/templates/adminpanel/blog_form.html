@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+{% block header_actions %}<a href="{% url 'adminpanel:blog' %}" class="btn btn-soft btn-sm">← All articles</a>{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="fc" novalidate>{% csrf_token %}
+{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+<div class="row g-3"><div class="col-12">{% include 'partials/_field.html' with field=form.title %}</div>
+<div class="col-md-4">{% include 'partials/_field.html' with field=form.category %}</div><div class="col-md-4">{% include 'partials/_field.html' with field=form.author_name %}</div><div class="col-md-4">{% include 'partials/_field.html' with field=form.published_at %}</div>
+<div class="col-12">{% include 'partials/_field.html' with field=form.excerpt %}</div>
+<div class="col-12">{% include 'partials/_field.html' with field=form.cover %}{% if post and post.cover %}<img src="{{ post.cover.url }}" alt="" class="mt-2 rounded-3" style="height:90px">{% endif %}</div>
+<div class="col-12">{% include 'partials/_field.html' with field=form.body %}<div class="mut small mt-1">Markdown: ## heading, **bold**, - list, [link](https://...).</div></div>
+<div class="col-md-6">{% include 'partials/_field.html' with field=form.is_published %}</div><div class="col-md-6">{% include 'partials/_field.html' with field=form.is_featured %}</div>
+<div class="col-12 d-flex gap-2"><button class="btn btn-brand">Save article</button>{% if post and post.is_published %}<a class="btn btn-soft" href="{{ post.get_absolute_url }}" target="_blank">View on website</a>{% endif %}</div></div></form>
+{% endblock %}

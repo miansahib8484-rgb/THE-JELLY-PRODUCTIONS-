@@ -1,0 +1,23 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-4"><form method="post" enctype="multipart/form-data" class="fc" novalidate>{% csrf_token %}
+  <h5 class="mb-3">Upload a certificate</h5>
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3">
+    <div class="col-12">{% include 'partials/_field.html' with field=form.student %}</div>
+    <div class="col-12">{% include 'partials/_field.html' with field=form.course %}</div>
+    <div class="col-12">{% include 'partials/_field.html' with field=form.issued_on %}</div>
+    <div class="col-12">{% include 'partials/_field.html' with field=form.file %}<div class="mut small mt-1">The student can view and download it from their dashboard. Issuing marks the course as completed.</div></div>
+    <div class="col-12"><button class="btn btn-brand w-100"><span class="material-symbols-outlined">workspace_premium</span> Issue certificate</button></div>
+  </div></form></div>
+<div class="col-lg-8"><div class="fc flush"><div class="fc-h px-4 pt-4"><h5>Issued certificates</h5></div>
+  {% include 'dashboard/_toolbar.html' %}
+  <div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Issued</th><th>File</th><th>Actions</th></tr></thead><tbody>
+  {% for c in page %}<tr><td>{% include 'dashboard/_person.html' with person=c.student %}</td><td>{{ c.course.title|truncatechars:34 }}</td><td>{{ c.issued_on|date:"M j, Y" }}</td>
+    <td><a class="ibtn" href="{{ c.file_url }}" target="_blank" title="View"><span class="material-symbols-outlined">visibility</span></a> <a class="ibtn" href="{{ c.download_url }}" title="Download"><span class="material-symbols-outlined">download</span></a></td>
+    <td><form method="post" action="{% rurl 'certificate_delete' c.pk %}" data-confirm="Delete this certificate?">{% csrf_token %}<button class="ibtn del"><span class="material-symbols-outlined">delete</span></button></form></td></tr>
+  {% empty %}<tr><td colspan="5" class="text-center mut py-4">No certificates issued yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% include 'dashboard/_pagination.html' %}</div></div></div>
+{% endblock %}

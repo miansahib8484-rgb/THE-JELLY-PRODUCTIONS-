@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Unsubscribe{% endblock %}
+{% block robots %}noindex,follow{% endblock %}
+{% block content %}
+<section class="section"><div class="container"><div class="mx-auto text-center" style="max-width:520px">
+<h1 class="h3 mb-3">Unsubscribe</h1>
+{% if sub.status == 'unsubscribed' %}<p class="text-secondary">{{ sub.email }} is already unsubscribed.</p>
+{% else %}<p class="text-secondary">Stop sending e-mails to <b>{{ sub.email }}</b>?</p>
+<form method="post">{% csrf_token %}<button class="btn btn-brand">Yes, unsubscribe me</button> <a href="{% url 'website:home' %}" class="btn btn-soft">Keep me subscribed</a></form>{% endif %}
+</div></div></section>
+{% endblock %}

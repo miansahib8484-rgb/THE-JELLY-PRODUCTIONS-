@@ -1,0 +1,17 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-7"><form method="post" enctype="multipart/form-data" class="fc" novalidate>{% csrf_token %}
+  <h5>{{ enrollment.course.title }}</h5><p class="mut">Amount: <b>{{ payment.amount|pkr }}</b></p>
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3"><div class="col-12">{% include 'partials/_field.html' with field=form.gateway %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.transaction_reference %}</div><div class="col-md-6">{% include 'partials/_field.html' with field=form.sender_account_number %}</div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.proof_file %}{% if payment.proof_file %}<div class="small mt-1">Current file: <a href="{{ payment.proof_url }}" target="_blank">view</a></div>{% endif %}</div>
+  <div class="col-12"><button class="btn btn-brand">Submit proof</button> <a href="{% url 'student:billing' %}" class="btn btn-soft">Cancel</a></div></div></form></div>
+<div class="col-lg-5"><div class="fc"><h5>Send your payment to</h5>
+  {% if info.easypaisa_number %}<div class="mini"><span class="sico t-g"><span class="material-symbols-outlined">smartphone</span></span><div><b>EasyPaisa</b><div class="mut">{{ info.easypaisa_number }} · {{ info.easypaisa_account_name }}</div></div></div>{% endif %}
+  {% if info.jazzcash_number %}<div class="mini"><span class="sico t-y"><span class="material-symbols-outlined">smartphone</span></span><div><b>JazzCash</b><div class="mut">{{ info.jazzcash_number }} · {{ info.jazzcash_account_name }}</div></div></div>{% endif %}
+  {% if info.bank_account_number %}<div class="mini"><span class="sico t-b"><span class="material-symbols-outlined">account_balance</span></span><div><b>{{ info.bank_name }}</b><div class="mut">{{ info.bank_account_title }} · A/C {{ info.bank_account_number }}{% if info.bank_iban %}<br>IBAN {{ info.bank_iban }}{% endif %}</div></div></div>{% endif %}
+  {% if not info.easypaisa_number and not info.jazzcash_number and not info.bank_account_number %}<p class="mut mb-0">Payment account details have not been set up yet. Please <a href="{% url 'website:contact' %}">contact us</a> before sending any money.</p>{% endif %}
+  {% if info.instructions %}<p class="mut small mt-3 mb-0">{{ info.instructions }}</p>{% endif %}</div></div></div>
+{% endblock %}

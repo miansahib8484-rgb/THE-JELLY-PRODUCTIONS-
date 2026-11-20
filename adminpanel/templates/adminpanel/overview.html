@@ -1,0 +1,54 @@
+{% extends 'dashboard/base.html' %}
+{% load static jelly_tags %}
+{% block page_header %}<div class="ph"><div><h1>Overview</h1><div class="mut">Live numbers from your database. <span class="chip green" id="liveDot">● live</span></div></div><a href="{% url 'adminpanel:reports' %}" class="btn btn-soft btn-sm"><span class="material-symbols-outlined">summarize</span> Full reports</a></div>{% endblock %}
+{% block content %}
+<div class="row g-3 mb-3">
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Revenue' value=k.revenue.value|pkr icon='payments' tone='y' live='revenue' trend=k.revenue.trend note=k.revenue.month|pkr|add:' this month' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Students' value=k.students.value icon='groups' tone='b' live='students' trend=k.students.trend note=k.students.month|stringformat:'s'|add:' new this month' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Active enrollments' value=k.enrollments.value icon='assignment' tone='g' live='enrollments' trend=k.enrollments.trend note=k.enrollments.month|stringformat:'s'|add:' new this month' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Pending payments' value=k.pending.value icon='hourglass_top' tone='r' live='pending' note='waiting for your review' %}</div></div>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Live courses' value=k.courses.value icon='auto_stories' tone='b' live='courses' note=k.courses.drafts|stringformat:'s'|add:' draft(s)' %}</div>
+  <div class="col-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Teachers' value=k.teachers.value icon='school' tone='g' live='teachers' note='active accounts' %}</div>
+  <div class="col-6 col-xl-3">{% include 'dashboard/_stat.html' with title='New messages' value=k.messages.value icon='inbox' tone='y' live='messages' note='in the contact inbox' %}</div>
+  <div class="col-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Newsletter' value=k.subscribers.value icon='mail' tone='b' live='subscribers' note='active subscribers' %}</div></div>
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-8"><div class="fc"><div class="fc-h"><h5>Revenue and enrollments, last 6 months</h5><a href="{% url 'adminpanel:reports' %}" class="btn btn-soft btn-sm">More</a></div><div style="position:relative;height:290px"><canvas id="mainChart"></canvas></div></div></div>
+  <div class="col-xl-4"><div class="fc"><div class="fc-h"><h5>Recent activity</h5></div>
+    {% for a in activity %}<a class="mini text-decoration-none" style="color:var(--tx)" href="{% url a.url %}"><span class="sico t-{{ a.tone }}" style="width:40px;height:40px"><span class="material-symbols-outlined">{{ a.icon }}</span></span><div class="flex-fill"><div class="small fw-semibold">{{ a.text|truncatechars:70 }}</div><div class="mut small">{{ a.when|timesince }} ago</div></div></a>{% empty %}<p class="mut mb-0">Nothing has happened yet.</p>{% endfor %}</div></div></div>
+
+<div class="row g-4 mb-4"><div class="col-xl-7"><div class="fc"><div class="fc-h"><h5>Upcoming live classes</h5><a href="{% url 'adminpanel:live' %}" class="btn btn-soft btn-sm">Manage</a></div>
+  {% for c in upcoming %}<div class="mini"><span class="sico t-b"><span class="material-symbols-outlined">videocam</span></span><div class="flex-fill"><b>{{ c.title }}</b><div class="mut small">{{ c.starts_at|date:"D, j M" }} · {{ c.starts_at|time:"g:i a" }} · {{ c.get_platform_display }}</div></div><span class="chip {{ c.status|status_class }}">{{ c.status|capfirst }}</span></div>{% empty %}<p class="mut mb-0">No upcoming classes.</p>{% endfor %}</div></div>
+<div class="col-xl-5"><div class="fc"><div class="fc-h"><h5>Payments to review</h5><a href="{% url 'adminpanel:payments' %}" class="btn btn-brand btn-sm">Review</a></div>
+  {% for p in to_review %}<div class="mini">{% include 'dashboard/_person.html' with person=p.enrollment.user %}<div class="ms-auto text-end"><b>{{ p.amount|pkr }}</b><div class="mut small">{{ p.get_gateway_display }}</div></div></div>{% empty %}<p class="mut mb-0">Nothing waiting for review.</p>{% endfor %}</div></div></div>
+
+<div class="row g-4 mb-4"><div class="col-xl-7"><div class="fc flush"><div class="fc-h px-4 pt-4"><h5>Latest enrollments</h5><a href="{% url 'adminpanel:enrollments' %}" class="btn btn-soft btn-sm">View all</a></div>
+<div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Status</th></tr></thead><tbody>
+{% for e in latest %}<tr><td>{% include 'dashboard/_person.html' with person=e.user %}</td><td>{{ e.course.title|truncatechars:36 }}</td><td><span class="chip {{ e.status|status_class }}">{{ e.get_status_display }}</span></td></tr>{% empty %}<tr><td colspan="3" class="text-center mut py-4">No enrollments yet.</td></tr>{% endfor %}</tbody></table></div></div></div>
+<div class="col-xl-5"><div class="fc"><div class="fc-h"><h5>Most popular courses</h5><a href="{% url 'adminpanel:courses' %}" class="btn btn-soft btn-sm">Courses</a></div>
+  {% for c in top_courses %}<div class="mini"><img src="{{ c.image_url }}" alt=""><div class="flex-fill"><b>{{ c.title|truncatechars:34 }}</b><div class="mut small">{{ c.n }} learner{{ c.n|pluralize }}</div></div><span class="chip warm">★ {{ c.rating_avg }}</span></div>{% empty %}<p class="mut mb-0">No courses yet.</p>{% endfor %}</div></div></div>
+
+<h5 class="mb-3">Quick actions</h5>
+<div class="row g-3">
+<div class="col-6 col-xl-3"><a href="{% url 'adminpanel:live_create' %}" class="fc d-flex align-items-center gap-3" style="color:var(--tx)"><span class="sico t-b"><span class="material-symbols-outlined">videocam</span></span><b>Schedule a live class</b></a></div>
+<div class="col-6 col-xl-3"><a href="{% url 'adminpanel:course_create' %}" class="fc d-flex align-items-center gap-3" style="color:var(--tx)"><span class="sico t-g"><span class="material-symbols-outlined">add_photo_alternate</span></span><b>Add a course with image</b></a></div>
+<div class="col-6 col-xl-3"><a href="{% url 'adminpanel:certificates' %}" class="fc d-flex align-items-center gap-3" style="color:var(--tx)"><span class="sico t-y"><span class="material-symbols-outlined">workspace_premium</span></span><b>Upload certificates</b></a></div>
+<div class="col-6 col-xl-3"><a href="{% url 'adminpanel:contact' %}" class="fc d-flex align-items-center gap-3" style="color:var(--tx)"><span class="sico t-r"><span class="material-symbols-outlined">inbox</span></span><b>Contact inbox (<span data-live="messages">{{ k.messages.value }}</span> new)</b></a></div></div>
+{{ chart|json_script:"chartData" }}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs-4.4.3/chart.umd.js' %}"></script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  const d = JSON.parse(document.getElementById('chartData').textContent), el = document.getElementById('mainChart');
+  if (!el || !window.Chart) return;
+  new Chart(el, {data: {labels: d.labels, datasets: [
+    {type: 'bar', label: 'Revenue (Rs)', data: d.revenue, backgroundColor: 'rgba(27,95,168,.75)', borderRadius: 8, yAxisID: 'y'},
+    {type: 'line', label: 'Enrollments', data: d.enrollments, borderColor: '#E0A916', backgroundColor: '#E0A916', tension: .35, yAxisID: 'y1'},
+    {type: 'line', label: 'New students', data: d.students, borderColor: '#17A360', backgroundColor: '#17A360', tension: .35, yAxisID: 'y1'}]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      scales: {y: {beginAtZero: true, ticks: {callback: v => 'Rs ' + Number(v).toLocaleString()}}, y1: {beginAtZero: true, position: 'right', grid: {drawOnChartArea: false}, ticks: {precision: 0}}}}});
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% load static jelly_tags %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ page_title|default:"Dashboard" }}{% endblock %} | {{ site.site_name }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<link href="{% static 'vendor/bootstrap-5.3.3/bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/style.css' %}" rel="stylesheet">
+<link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+<script nonce="{{ request.csp_nonce }}">try{document.documentElement.setAttribute("data-bs-theme",localStorage.getItem("jelly-theme")||"light")}catch(e){}</script>
+{% block extra_head %}{% endblock %}
+</head>
+<body class="app-body" data-role="{{ role }}" data-live-url="{% if role == 'admin' %}{% url 'adminpanel:api_summary' %}{% elif role == 'teacher' %}{% url 'teacher:api_summary' %}{% elif role == 'student' %}{% url 'student:api_summary' %}{% endif %}">
+<div class="app">
+<aside class="sb">
+  <a href="{% url 'website:home' %}" class="sb-logo"><img src="{% static 'img/logo.png' %}" alt="{{ site.site_name }}"><span>{{ site.site_name }}</span></a>
+  <nav class="sb-nav">
+    {% for item in menu %}{% if item.heading %}<div class="sb-lbl">{{ item.heading }}</div>
+    {% else %}<a class="mi {% if item.active %}on{% endif %}" href="{% url item.url %}" title="{{ item.label }}"><span class="material-symbols-outlined">{{ item.icon }}</span><span class="lbl">{{ item.label }}</span>{% if item.label == 'Notifications' and unread_count %}<span class="badge text-bg-danger ms-auto lbl">{{ unread_count }}</span>{% elif item.badge_on %}<span class="badge text-bg-danger ms-auto lbl" data-live-badge="{{ item.url }}"{% if not item.badge %} style="display:none"{% endif %}>{{ item.badge }}</span>{% endif %}</a>{% endif %}{% endfor %}
+    <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="mi" type="submit"><span class="material-symbols-outlined">logout</span><span class="lbl">Logout</span></button></form>
+  </nav>
+</aside>
+<div class="sb-ov"></div>
+<div class="main">
+<header class="tb">
+  <button class="ib" data-sb-toggle aria-label="Toggle sidebar"><span class="material-symbols-outlined">menu</span></button>
+  <div class="ms-auto d-flex align-items-center gap-1">
+    <a href="{% url 'website:home' %}" class="btn btn-soft btn-sm d-none d-sm-inline-flex" target="_blank" rel="noopener">View website</a>
+    <button class="ib" data-theme-btn aria-label="Toggle dark mode"><span class="material-symbols-outlined" data-theme-ico>dark_mode</span></button>
+    <div class="dropdown"><button class="ib" data-bs-toggle="dropdown" aria-label="Notifications"><span class="material-symbols-outlined">notifications</span>{% if unread_count %}<span class="dot">{{ unread_count }}</span>{% endif %}</button>
+      <div class="dropdown-menu dropdown-menu-end dd-wide"><div class="hd"><span>Notifications ({{ unread_count }} new)</span><a href="{% url 'accounts:notifications' %}">View all</a></div>
+        {% for n in recent_notifications %}<a class="it" href="{% url 'accounts:notification_open' n.pk %}"><span class="sico t-b" style="width:38px;height:38px"><span class="material-symbols-outlined">notifications</span></span><div><b>{{ n.title }}</b>{% if not n.is_read %} <span class="badge text-bg-primary">new</span>{% endif %}<div class="mut small">{{ n.created_at|timesince }} ago</div></div></a>
+        {% empty %}<div class="p-3 mut">You're all caught up.</div>{% endfor %}</div></div>
+    <div class="dropdown ms-2"><button class="border-0 bg-transparent d-flex align-items-center gap-2" data-bs-toggle="dropdown"><img class="avatar" src="{{ user.profile.avatar_url }}" alt=""><span class="text-start d-none d-sm-block lh-sm" style="color:var(--tx)"><b>{{ user.get_full_name|default:user.username }}</b><br><small class="mut text-capitalize">{{ role }}</small></span></button>
+      <ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><span class="material-symbols-outlined">person</span> My profile</a></li><li><a class="dropdown-item" href="{% url 'accounts:settings' %}"><span class="material-symbols-outlined">lock</span> Password</a></li><li><hr class="dropdown-divider"></li>
+      <li><form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="dropdown-item"><span class="material-symbols-outlined">logout</span> Logout</button></form></li></ul></div>
+  </div>
+</header>
+<main class="content">
+  {% include 'partials/_messages.html' %}
+  {% block page_header %}<div class="ph"><h1>{{ page_title }}</h1><nav><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url dashboard_home %}">Dashboard</a></li><li class="breadcrumb-item active">{{ page_title }}</li></ol></nav>{% block header_actions %}{% endblock %}</div>{% endblock %}
+  {% block content %}{% endblock %}
+</main>
+<footer class="foot">&copy; {% now 'Y' %} {{ site.site_name }}. All rights reserved.</footer>
+</div></div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content p-3 text-center">
+  <div class="sico t-r mx-auto mb-3"><span class="material-symbols-outlined">warning</span></div><h5 class="msg">Are you sure?</h5><p class="mut">This cannot be undone.</p>
+  <div class="d-flex gap-2"><button class="btn btn-soft flex-fill" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger flex-fill ok" style="border-radius:12px">Yes, continue</button></div></div></div></div>
+{% block modals %}{% endblock %}
+<script src="{% static 'vendor/bootstrap-5.3.3/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

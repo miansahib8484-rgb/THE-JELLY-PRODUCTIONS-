@@ -1,0 +1,11 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-4"><form method="post" class="fc" novalidate>{% csrf_token %}<h5 class="mb-3">Message your students</h5>
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3"><div class="col-12">{% include 'partials/_field.html' with field=form.course %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.batch %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.title %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.body %}<div class="mut small mt-1">Up to 300 characters. Students get it as a notification.</div></div>
+  <div class="col-12"><button class="btn btn-brand w-100"><span class="material-symbols-outlined">send</span> Send announcement</button></div></div></form></div>
+<div class="col-lg-8"><div class="fc flush"><div class="fc-h px-4 pt-4"><h5>Sent announcements</h5></div><div class="px-4 pb-2">
+{% for a in page %}<div class="mini"><span class="sico t-b"><span class="material-symbols-outlined">campaign</span></span><div class="flex-fill"><b>{{ a.title }}</b><div>{{ a.body }}</div><div class="mut small">{{ a.course.title|truncatechars:36 }}{% if a.batch %} · batch {{ a.batch.start_date|date:"M j" }}{% endif %} · {{ a.recipients }} student{{ a.recipients|pluralize }} · {{ a.created_at|timesince }} ago</div></div>
+  <form method="post" action="{% url 'teacher:announcement_delete' a.pk %}" data-confirm="Remove from history?">{% csrf_token %}<button class="ibtn del"><span class="material-symbols-outlined">delete</span></button></form></div>{% empty %}<p class="mut py-3">Nothing sent yet.</p>{% endfor %}</div>{% include 'dashboard/_pagination.html' %}</div></div></div>
+{% endblock %}

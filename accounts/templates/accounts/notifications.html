@@ -1,0 +1,6 @@
+{% extends 'dashboard/base.html' %}
+{% block header_actions %}<form method="post">{% csrf_token %}<button class="btn btn-soft btn-sm">Mark all as read</button></form>{% endblock %}
+{% block content %}
+<div class="fc flush"><div class="p-4 pb-2">{% for n in page %}<a class="mini" href="{% url 'accounts:notification_open' n.pk %}" style="color:inherit"><span class="sico t-{% if n.is_read %}b{% else %}y{% endif %}"><span class="material-symbols-outlined">notifications</span></span><div class="flex-fill"><b>{{ n.title }}</b>{% if not n.is_read %} <span class="badge text-bg-primary">new</span>{% endif %}<div class="mut">{{ n.body }}</div></div><small class="mut">{{ n.created_at|timesince }} ago</small></a>
+{% empty %}<p class="mut text-center py-4">No notifications yet.</p>{% endfor %}</div>{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

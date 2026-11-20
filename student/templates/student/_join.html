@@ -1,0 +1,4 @@
+{% if c.status == 'ended' %}<button class="btn btn-soft" disabled>Class ended</button>
+{% elif not c.meeting_link %}<button class="btn btn-soft" disabled>Link will be shared soon</button>
+{% elif c.can_join %}<a class="btn btn-brand" href="{{ c.meeting_link }}" target="_blank" rel="noopener"><span class="material-symbols-outlined">videocam</span> Join class</a>
+{% else %}<button class="btn btn-soft" disabled title="Opens 10 minutes before class">Opens 10 min before</button>{% endif %}

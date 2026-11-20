@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4">{% include 'dashboard/_stat.html' with title='Total paid' value=totals.paid|pkr icon='payments' tone='g' %}</div>
+  <div class="col-md-4">{% include 'dashboard/_stat.html' with title='Under review' value=totals.review|pkr icon='hourglass_top' tone='y' %}</div>
+  <div class="col-md-4">{% include 'dashboard/_stat.html' with title='Payment due' value=totals.due|pkr icon='receipt_long' tone='r' %}</div></div>
+<div class="fc flush"><div class="table-responsive"><table class="table"><thead><tr><th>Course</th><th>Method</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for p in payments %}<tr><td>{{ p.enrollment.course.title|truncatechars:44 }}</td><td>{{ p.get_gateway_display }}</td><td>{{ p.amount|pkr }}</td>
+  <td><span class="chip {{ p.status|status_class }}">{% if p.status == 'pending' and not p.has_proof %}Payment due{% else %}{{ p.get_status_display }}{% endif %}</span>{% if p.status == 'failed' and p.admin_note %}<div class="mut small">{{ p.admin_note }}</div>{% endif %}</td>
+  <td>{% if p.status != 'paid' %}<a class="btn btn-brand btn-sm" href="{% url 'student:pay' p.enrollment.pk %}">{% if p.has_proof %}Update proof{% else %}Submit proof{% endif %}</a>{% else %}<span class="mut">Done</span>{% endif %}{% if p.enrollment.status == 'pending_payment' and not p.has_proof and p.status == 'pending' %}<form method="post" action="{% url 'student:cancel_reservation' p.enrollment.pk %}" class="d-inline" data-confirm="Release your seat in this course?">{% csrf_token %}<button class="btn btn-soft btn-sm">Cancel seat</button></form>{% endif %}</td></tr>
+{% empty %}<tr><td colspan="5" class="text-center mut py-4">No payments yet. <a href="{% url 'website:enroll' %}">Reserve a seat</a>.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

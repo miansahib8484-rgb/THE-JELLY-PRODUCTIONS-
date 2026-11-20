@@ -1,0 +1,1 @@
+{% load jelly_tags %}{% site_partners as ps %}{% if ps %}<div class="partners text-center container"><div class="mb-2">{{ label }}</div>{% for p in ps %}<b>{{ p.name }}</b>{% endfor %}</div>{% endif %}

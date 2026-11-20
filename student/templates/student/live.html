@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="fc mb-4 d-flex align-items-center gap-3"><span class="sico t-y"><span class="material-symbols-outlined">schedule</span></span><div><b>Your class timings and recordings</b><div class="mut">Times are in Pakistan time ({% now "T" %}). Join opens 10 minutes before each class. Missed one? Watch the recording after your teacher uploads it.</div></div></div>
+<ul class="nav nav-pills gap-2 mb-4"><li><a class="nav-link {% if tab != 'recordings' %}active{% endif %}" href="?status=upcoming">Upcoming <span class="chip ms-1">{{ upcoming|length }}</span></a></li><li><a class="nav-link {% if tab == 'recordings' %}active{% endif %}" href="?status=recordings">Recordings <span class="chip ms-1">{{ recordings|length }}</span></a></li></ul>
+{% if tab == 'recordings' %}
+<div class="row g-4">{% for c in recordings %}<div class="col-md-6 col-xl-4"><div class="cc"><a class="vid-thumb" href="{% url 'student:watch' c.pk %}"><span class="material-symbols-outlined">play_circle</span></a><div class="b">
+  <div class="d-flex justify-content-between"><span class="chip green">Recording</span><span class="mut small">{{ c.starts_at|date:"j M" }}</span></div><h6 class="mb-0 mt-1">{{ c.title }}</h6><div class="mut small">{{ c.course.title }}</div>
+  <a href="{% url 'student:watch' c.pk %}" class="btn btn-brand btn-sm mt-2"><span class="material-symbols-outlined">play_arrow</span> Watch recording</a></div></div></div>
+{% empty %}<div class="col-12"><div class="fc text-center mut">No recordings yet. They appear here after your teacher uploads them.</div></div>{% endfor %}</div>
+{% else %}
+<div class="row g-4">{% for c in upcoming %}{% include 'student/_class_card.html' %}{% empty %}<div class="col-12"><div class="fc text-center mut">No upcoming classes. Your teacher will schedule the next one soon.</div></div>{% endfor %}</div>
+{% endif %}
+{% endblock %}

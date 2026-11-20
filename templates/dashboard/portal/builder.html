@@ -1,0 +1,38 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a href="{% rurl 'course_edit' course.slug %}" class="btn btn-soft btn-sm">Edit course details</a>{% endblock %}
+{% block content %}
+<div class="fc mb-4 d-flex flex-wrap align-items-center gap-3"><img src="{{ course.image_url }}" alt="" style="width:120px;aspect-ratio:16/10;object-fit:cover;border-radius:12px">
+  <div class="flex-fill"><h4 class="mb-1">{{ course.title }}</h4><span class="chip {% if course.is_published %}green{% else %}warm{% endif %}">{% if course.is_published %}Live on website{% else %}Draft{% endif %}</span> <span class="mut ms-2">{{ course.price|pkr }} · {{ course.get_level_display }}</span></div>
+  <a href="{{ course.get_absolute_url }}" target="_blank" class="btn btn-soft btn-sm">View on website</a></div>
+<div class="row g-4"><div class="col-lg-7">
+  <div class="fc"><div class="fc-h"><h5>Curriculum</h5></div>
+  <div class="accordion" id="cur">{% for m in modules %}
+    <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" data-bs-toggle="collapse" data-bs-target="#m{{ m.pk }}">Module {{ forloop.counter }}: {{ m.title }} <span class="ms-auto me-3 mut small">{{ m.lectures.all|length }} lectures</span></button></h2>
+    <div id="m{{ m.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"><div class="accordion-body">
+      {% for l in m.lectures.all %}<div class="lesson"><span class="material-symbols-outlined">{% if l.type == 'project' %}task{% elif l.type == 'live_review' %}videocam{% else %}play_circle{% endif %}</span><span class="flex-fill">{{ l.title }} <span class="mut small">· {{ l.duration_label }}</span></span>
+        <a class="ibtn" href="{% rurl 'lecture_edit' l.pk %}" title="Edit"><span class="material-symbols-outlined">edit</span></a>
+        <form method="post" action="{% rurl 'lecture_delete' l.pk %}" data-confirm="Delete this lecture?">{% csrf_token %}<button class="ibtn del"><span class="material-symbols-outlined">delete</span></button></form></div>{% endfor %}
+      <form method="post" action="{% rurl 'lecture_add' m.pk %}" class="row g-2 mt-2">{% csrf_token %}
+        <div class="col-md-5"><input name="title" class="form-control form-control-sm" placeholder="Lecture title" required></div>
+        <div class="col-md-3"><select name="type" class="form-select form-select-sm">{% for k, v in lecture_form.fields.type.choices %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></div>
+        <div class="col-md-2"><input name="duration_label" class="form-control form-control-sm" value="10 min"></div>
+        <div class="col-md-12"><input name="video_url" type="url" class="form-control form-control-sm" placeholder="Video link (optional)"></div>
+        <div class="col-12 d-flex gap-2"><button class="btn btn-soft btn-sm">Add lecture</button></div></form>
+      <div class="d-flex gap-2 mt-3"><a class="btn btn-sm btn-soft" href="{% rurl 'module_edit' m.pk %}">Edit module</a><form method="post" action="{% rurl 'module_delete' m.pk %}" data-confirm="Delete this module and its lectures?">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Delete module</button></form></div>
+    </div></div></div>{% empty %}<p class="mut">No modules yet. Add the first one below.</p>{% endfor %}</div>
+  <form method="post" action="{% rurl 'module_add' course.slug %}" class="d-flex gap-2 mt-3">{% csrf_token %}<input name="title" class="form-control" placeholder="New module title" required><button class="btn btn-brand">Add module</button></form></div>
+</div><div class="col-lg-5">
+  <div class="fc"><div class="fc-h"><h5>Batches</h5></div>
+  {% for b in batches %}<div class="mini"><span class="sico t-b"><span class="material-symbols-outlined">event</span></span><div class="flex-fill"><b>{{ b.start_date|date:"M j, Y" }}</b><div class="mut small">{{ b.schedule_label|default:"Live online" }} · {{ b.seats_filled }}/{{ b.seats_total }} seats · {{ b.get_status_display }}</div></div>
+    <a class="ibtn" href="{% rurl 'batch_edit' b.pk %}" title="Edit"><span class="material-symbols-outlined">edit</span></a>
+    <form method="post" action="{% rurl 'batch_delete' b.pk %}" data-confirm="Delete this batch?">{% csrf_token %}<button class="ibtn del"><span class="material-symbols-outlined">delete</span></button></form></div>
+  {% empty %}<p class="mut">No batches yet.</p>{% endfor %}
+  <hr><h6>Add a batch</h6>
+  <form method="post" action="{% rurl 'batch_add' course.slug %}" class="row g-2">{% csrf_token %}
+    <div class="col-6">{{ batch_form.start_date }}</div><div class="col-6">{{ batch_form.seats_total }}</div>
+    <div class="col-12">{{ batch_form.schedule_label }}</div><div class="col-6">{{ batch_form.status }}</div><div class="col-6"></div>
+    <div class="col-12">{{ batch_form.meeting_link }}</div>
+    <div class="col-12"><button class="btn btn-brand w-100">Add batch</button></div></form></div>
+</div></div>
+{% endblock %}

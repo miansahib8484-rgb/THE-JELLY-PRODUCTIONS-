@@ -1,0 +1,11 @@
+{% load jelly_tags %}
+{# tabs: list of (key,label); current: selected key; q: search text; param: query-string name for tabs (default "status") #}
+<div class="dt-bar">
+  {% if tabs %}<div class="ftabs">{% for key, label in tabs %}<a href="{% qs status=key page='' %}" class="btn btn-sm {% if current == key %}btn-brand{% else %}btn-soft{% endif %}">{{ label }}</a>{% endfor %}</div>{% else %}<span></span>{% endif %}
+  <form method="get" class="d-flex gap-2">
+    {% if current %}<input type="hidden" name="status" value="{{ current }}">{% endif %}
+    <input class="form-control form-control-sm" style="max-width:240px" name="q" value="{{ q|default:'' }}" placeholder="Search..." aria-label="Search">
+    <button class="btn btn-soft btn-sm"><span class="material-symbols-outlined">search</span></button>
+    {{ extra_tools }}
+  </form>
+</div>

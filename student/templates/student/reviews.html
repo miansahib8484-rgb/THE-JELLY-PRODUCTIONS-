@@ -1,0 +1,12 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-5"><div class="fc"><h5 class="mb-3">Write a review</h5>
+{% if options %}<form method="post" novalidate>{% csrf_token %}<div class="row g-3">
+  <div class="col-12"><label class="form-label fw-semibold" for="rvCourse">Course</label><select id="rvCourse" name="course" class="form-select">{% for c in options %}<option value="{{ c.pk }}">{{ c.title }}</option>{% endfor %}</select></div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.rating %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.comment %}</div>
+  <div class="col-12"><button class="btn btn-brand">Submit review</button></div></div></form>
+{% else %}<p class="mut mb-0">You have reviewed all your courses, or you are not enrolled in one yet.</p>{% endif %}</div></div>
+<div class="col-lg-7"><div class="fc"><h5 class="mb-3">Your reviews</h5>
+{% for r in reviewed %}<div class="mini"><span class="sico t-y"><span class="material-symbols-outlined">star</span></span><div><b>{{ r.course.title }}</b><div class="stars">{{ r.rating|stars }}</div><p class="mut mb-0">{{ r.comment }}</p><div class="d-flex gap-2 mt-1"><a class="btn btn-soft btn-sm" href="{% url 'student:review_edit' r.pk %}">Edit</a><a class="btn btn-soft btn-sm" href="{{ r.course.get_absolute_url }}#t4">See on website</a><form method="post" action="{% url 'student:review_delete' r.pk %}" data-confirm="Delete this review?">{% csrf_token %}<button class="btn btn-soft btn-sm">Delete</button></form></div></div></div>{% empty %}<p class="mut mb-0">No reviews yet.</p>{% endfor %}</div></div></div>
+{% endblock %}

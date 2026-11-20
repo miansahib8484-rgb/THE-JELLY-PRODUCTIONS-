@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load jelly_tags %}
+{% block title %}{{ course.title }}{% endblock %}
+{% block meta_description %}{% if course.subtitle %}{{ course.subtitle }}{% else %}{{ course.description|striptags|truncatechars:155 }}{% endif %}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ course.title }}{% endblock %}
+{% block og_description %}{% if course.subtitle %}{{ course.subtitle }}{% else %}{{ course.description|striptags|truncatechars:155 }}{% endif %}{% endblock %}
+{% block og_image %}{% with u=course.image_url %}<meta property="og:image" content="{% if u|slice:':4' == 'http' %}{{ u }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ u }}{% endif %}">{% endwith %}{% endblock %}
+{% block extra_head %}<script type="application/ld+json">{{ course_schema|safe }}</script>{% endblock %}
+{% block content %}
+<section class="course-hero"><div class="container">
+<nav><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'website:home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'website:courses' %}">Courses</a></li><li class="breadcrumb-item active">{{ course.title|truncatechars:40 }}</li></ol></nav>
+<div class="row g-5 align-items-center"><div class="col-lg-7">
+  <span class="hero-chip sun">Taught personally by {{ course.instructor_name }}</span>
+  <div class="mt-2"><span class="hero-chip">{{ course.category }}</span><span class="hero-chip">{{ course.get_level_display }}</span><span class="hero-chip">{{ course.duration_weeks }} weeks</span></div>
+  <h1 class="my-3">{{ course.title }}</h1>
+  {% if course.subtitle %}<p class="lead" style="color:#dbe8f7">{{ course.subtitle }}</p>{% endif %}
+  <p class="mb-3"><span class="stars">{{ course.rating_avg|stars }}</span> {{ course.rating_avg }} ({{ course.review_count }} review{{ course.review_count|pluralize }}) · {{ course.students_enrolled_count }} enrolled</p>
+  {% if course.preview_video_id %}<button class="btn btn-line" data-bs-toggle="modal" data-bs-target="#prev">▶ Preview this course</button>{% endif %}
+</div>
+<div class="col-lg-5"><div class="buy-card">
+  <div class="d-flex align-items-baseline gap-2 mb-1"><span class="price fs-2">{{ course.price|pkr }}</span>{% if course.original_price %}<s class="old">{{ course.original_price|pkr }}</s>{% endif %}{% if course.discount_percent %}<span class="chip warm ms-1">-{{ course.discount_percent }}%</span>{% endif %}</div>
+  {% if batch %}<div class="small mb-3 {% if batch.seats_left <= 5 %}text-danger{% else %}text-success{% endif %}">{{ batch.label }}: {{ batch.seats_left }} seat{{ batch.seats_left|pluralize }} left</div>{% else %}<div class="small text-secondary mb-3">Next batch date coming soon</div>{% endif %}
+  {% if enrollment and enrollment.is_learning %}
+    <a href="{% url 'student:player' course.slug %}" class="btn btn-brand w-100 mb-2">Go to my course</a>
+  {% elif enrollment %}
+    <a href="{% url 'student:billing' %}" class="btn btn-brand w-100 mb-2">Complete your payment</a>
+  {% else %}
+    <a href="{% url 'website:enroll' %}?course={{ course.slug }}" class="btn btn-brand w-100 mb-2">Reserve your seat</a>
+    {% if not user.is_authenticated %}<a href="{% url 'accounts:login' %}?next={% url 'website:enroll' %}%3Fcourse%3D{{ course.slug }}" class="btn btn-soft w-100 mb-2">Sign in to reserve your seat</a>{% endif %}
+  {% endif %}
+  <a href="{% url 'website:contact' %}" class="btn btn-link w-100">Ask a question instead</a>
+  <hr><ul>
+    <li>⏱️ {{ course.duration_weeks }} weeks, ~{{ course.hours_per_week }} hrs/week</li>
+    <li>👤 Weekly review with {{ course.instructor_name }}</li>{% if site.batch_cap %}<li>👥 Live batch of {{ site.batch_cap }}, capped</li>{% endif %}
+    <li>📁 Finished portfolio project</li><li>♾️ Lifetime access to materials</li>{% if site.refund_days %}<li>🛡️ {{ site.refund_days }}-day honest refund window</li>{% endif %}</ul>
+</div></div></div></div></section>
+
+<section class="section bg-mist"><div class="container">
+<ul class="nav nav-pills gap-2 mb-4">
+  <li><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#t1">Overview</button></li>
+  <li><button class="nav-link" data-bs-toggle="pill" data-bs-target="#t2">Curriculum</button></li>
+  <li><button class="nav-link" data-bs-toggle="pill" data-bs-target="#t3">Your mentor</button></li>
+  <li><button class="nav-link" data-bs-toggle="pill" data-bs-target="#t4">Reviews</button></li>
+</ul>
+<div class="panel-w"><div class="tab-content">
+  <div class="tab-pane fade show active" id="t1"><h3>About this course</h3><div class="text-secondary">{% if course.description.strip %}{{ course.description|linebreaks }}{% else %}Details coming soon.{% endif %}</div></div>
+  <div class="tab-pane fade" id="t2"><h3 class="mb-3">{{ course.duration_weeks }} weeks, module by module <small class="text-secondary fs-6">({{ total_lectures }} lessons)</small></h3>
+    <div class="accordion" id="cur">
+    {% for m in course.modules.all %}
+      <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" data-bs-toggle="collapse" data-bs-target="#m{{ m.pk }}">Module {{ forloop.counter }}: {{ m.title }} <span class="ms-auto me-3 small text-secondary">{{ m.lectures.count }} lessons</span></button></h2>
+      <div id="m{{ m.pk }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"><div class="accordion-body">
+        {% for l in m.lectures.all %}<div class="d-flex justify-content-between py-1"><span>▶ {{ l.title }}</span><span class="text-secondary">{{ l.duration_label }}</span></div>{% endfor %}
+      </div></div></div>
+    {% empty %}<p class="text-secondary">The curriculum is being finalised.</p>{% endfor %}
+    </div></div>
+  <div class="tab-pane fade" id="t3"><div class="d-flex gap-4 flex-wrap">
+    <div style="flex:1;min-width:240px"><h3>{{ course.instructor_name }}</h3>{% if course.instructor_title %}<p class="fw-semibold">{{ course.instructor_title }}</p>{% endif %}<p class="text-secondary">{{ course.instructor_bio }}</p></div></div></div>
+  <div class="tab-pane fade" id="t4">
+    {% for r in reviews %}<div class="t-card mb-3" style="background:#EEF4FB"><div class="stars">{{ r.rating|stars }}</div><p>“{{ r.comment }}”</p><b>{{ r.display_name }}</b> <span class="text-secondary small">{{ r.author_role_label }}</span></div>
+    {% empty %}<p class="text-secondary">No reviews yet.</p>{% endfor %}
+    {% if review_form %}
+      <h4 class="mt-4">Leave a review</h4>
+      <form method="post" action="{% url 'website:submit_review' course.slug %}">{% csrf_token %}<div class="row g-3">
+        <div class="col-md-4">{% include 'partials/_field.html' with field=review_form.rating %}</div>
+        <div class="col-12">{% include 'partials/_field.html' with field=review_form.comment %}</div>
+        <div class="col-12"><button class="btn btn-brand">Submit review</button></div></div></form>
+    {% elif user.is_authenticated %}<p class="text-secondary small mt-3">Reviews can be left by enrolled students who haven't reviewed yet.</p>{% endif %}
+  </div>
+</div></div></div></section>
+
+{% include 'website/_faq.html' with page='course' id='fd' chip='Before you enroll' heading='Questions people usually ask' %}
+
+{% include 'website/_stat_band.html' %}
+
+<section class="section bg-mist"><div class="container"><div class="sec-head"><span class="chip">Keep browsing</span><h2>Related courses</h2></div>
+<div class="row g-4">{% for course in related %}{% include 'website/_course_card.html' %}{% endfor %}</div></div></section>
+
+{% if course.preview_video_id %}
+<div class="modal fade" id="prev" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="ratio ratio-16x9"><iframe data-src="https://www.youtube.com/embed/{{ course.preview_video_id }}" title="Course preview" allowfullscreen></iframe></div></div></div></div>
+{% endif %}
+{% endblock %}

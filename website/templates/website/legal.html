@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}{{ page.title }}{% endblock %}
+{% block meta_description %}{{ page.title }} of {{ site.site_name }}{% endblock %}
+{% block content %}
+<section class="section-sm bg-mist"><div class="container"><article class="mx-auto" style="max-width:780px">
+<h1 class="mb-1" style="font-size:clamp(1.8rem,4vw,2.6rem)">{{ page.title }}</h1>
+<p class="text-secondary mb-4">Last updated {{ page.updated_at|date:"j F Y" }}</p>
+<div class="post-body">{{ page.html|safe }}</div></article></div></section>
+{% endblock %}

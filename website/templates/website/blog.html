@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load jelly_tags %}
+{% block title %}Blog{% endblock %}
+{% block content %}
+{% page_hero 'fieldnote-blog-hero' as bg %}<section class="hero-photo centered" style="background-image:linear-gradient(rgba(10,42,72,.82),rgba(27,95,168,.6)){% if bg %},url({{ bg }}){% endif %}"><div class="container"><span class="hero-chip sun mb-3">Updated regularly</span><h1 class="my-3">Notes from the field, not marketing copy.</h1><p class="lead mb-4">Honest writing on learning, finishing, and getting hired, from {{ first|default:"our team" }}{% if first %} and the team{% endif %}.</p><div>{% if all_count %}<span class="hero-chip">{{ all_count }} post{{ all_count|pluralize }} and counting</span>{% endif %}<span class="hero-chip">Written by the team</span></div></div></section>
+
+{% if featured and not cat %}
+<section class="section bg-mist"><div class="container"><div class="feat-post"><div class="row g-0">
+<div class="col-lg-6"><img src="{{ featured.image }}" alt=""></div>
+<div class="col-lg-6 p-4 p-lg-5 d-flex flex-column justify-content-center"><span class="chip mb-3 align-self-start" style="background:#FFF0CC;color:#7A5600">Featured</span>
+<h2>{{ featured.title }}</h2><p class="text-secondary">{{ featured.excerpt }}</p><p class="small text-secondary">{{ featured.author_name|default:site.site_name }} · {{ featured.date|date:"M j, Y" }} · {{ featured.read_time }} min read</p>
+<a href="{% url 'website:blog_detail' featured.slug %}" class="btn btn-brand align-self-start">Read the post</a></div></div></div></div></section>
+{% endif %}
+
+<section class="section bg-mist" id="posts"><div class="container">
+<div class="d-flex flex-wrap gap-2 mb-4">
+  <a href="{% url 'website:blog' %}#posts" class="btn {% if not cat %}btn-brand{% else %}btn-soft{% endif %}">All posts</a>
+  {% for key, label in categories %}<a href="?cat={{ key }}#posts" class="btn {% if cat == key %}btn-brand{% else %}btn-soft{% endif %}">{{ label }}</a>{% endfor %}
+</div>
+<div class="row g-4">{% for post in posts %}{% include 'website/_post_card.html' %}{% empty %}<div class="col-12 text-center py-5 text-secondary">{% if all_count %}No articles in this category yet.{% else %}No articles have been published yet.{% endif %}</div>{% endfor %}</div>
+{% if posts.paginator.num_pages > 1 %}<nav class="d-flex justify-content-center gap-2 mt-4" aria-label="Pages">
+  {% if posts.has_previous %}<a class="btn btn-soft" href="{% qs page=posts.previous_page_number %}#posts">‹ Newer</a>{% endif %}
+  <span class="btn btn-brand disabled">{{ posts.number }} / {{ posts.paginator.num_pages }}</span>
+  {% if posts.has_next %}<a class="btn btn-soft" href="{% qs page=posts.next_page_number %}#posts">Older ›</a>{% endif %}</nav>{% endif %}
+</div></section>
+{% include 'website/_newsletter.html' %}
+{% endblock %}

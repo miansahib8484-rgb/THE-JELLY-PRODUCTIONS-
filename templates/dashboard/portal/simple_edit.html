@@ -1,0 +1,8 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a href="{% rurl 'builder' course.slug %}" class="btn btn-soft btn-sm">← Back to {{ course.title|truncatechars:30 }}</a>{% endblock %}
+{% block content %}
+<form method="post" class="fc" style="max-width:640px" novalidate>{% csrf_token %}
+<div class="row g-3">{% for f in form %}<div class="col-12">{% include 'partials/_field.html' with field=f %}</div>{% endfor %}
+<div class="col-12"><button class="btn btn-brand">Save changes</button></div></div></form>
+{% endblock %}

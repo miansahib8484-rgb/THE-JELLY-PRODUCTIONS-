@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<section class="section"><div class="container text-center py-5"><div class="display-1 fw-bold" style="color:var(--brand,#1B5FA8)">{{ code }}</div><h1 class="h3 my-3">{{ heading }}</h1>
+<p class="text-secondary mb-4">{{ message }}</p>
+<div class="d-flex gap-2 justify-content-center flex-wrap"><a href="{% url 'website:home' %}" class="btn btn-brand">Go to the home page</a><button type="button" class="btn btn-soft" data-back>Go back</button></div></div></section>
+{% endblock %}

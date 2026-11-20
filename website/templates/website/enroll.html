@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load jelly_tags %}
+{% block title %}Reserve your seat{% endblock %}
+{% block content %}
+<section class="page-banner"><div class="container"><h1 class="mb-2">Reserve your seat</h1><nav><ol class="breadcrumb mb-0"><li class="breadcrumb-item"><a href="{% url 'website:home' %}">Home</a></li><li class="breadcrumb-item active">Enroll</li></ol></nav></div></section>
+<section class="section bg-mist"><div class="container">
+<form id="enrollForm" method="post" enctype="multipart/form-data" novalidate class="needs-validation"
+      data-promo-url="{% url 'website:promo_check' %}">{% csrf_token %}
+{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+<div class="row g-4"><div class="col-lg-8">
+
+<div class="panel-w mb-4"><h4 class="mb-3"><span class="step-badge">1</span>Choose your course and batch</h4>
+  <label class="form-label fw-semibold" for="enCourse">Course</label>
+  <select id="enCourse" name="course" class="form-select form-select-lg mb-4">
+    {% for item in course_data %}{% with c=item.course %}
+    <option value="{{ c.pk }}" data-slug="{{ c.slug }}" data-title="{{ c.title }}" data-price="{{ c.price|floatformat:0 }}" data-orig="{{ c.original_price|default:c.price|floatformat:0 }}" data-weeks="{{ c.duration_weeks }} weeks" data-img="{{ c.image_url }}" {% if c.pk == selected.pk %}selected{% endif %}>{{ c.title }}</option>
+    {% endwith %}{% endfor %}
+  </select>
+  {% for e in form.course.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  <label class="form-label fw-semibold">Batch</label>
+  {% for item in course_data %}
+  <div class="row g-3 batch-group {% if item.course.pk != selected.pk %}d-none{% endif %}" data-course="{{ item.course.pk }}">
+    {% for b in item.batches %}
+    <div class="col-md-4"><input class="pay-in" type="radio" name="batch" id="b{{ b.pk }}" value="{{ b.pk }}" data-label="{{ b.label }}" {% if forloop.first %}checked{% endif %} {% if b.seats_left == 0 %}disabled{% endif %}>
+      <label class="pay-card" for="b{{ b.pk }}"><b>{{ b.start_date|date:"M j" }}</b><div class="small text-secondary">{{ b.schedule_label|default:"Live online" }}</div>
+      <div class="small fw-semibold mt-1 {% if b.seats_left <= 5 %}text-danger{% else %}text-success{% endif %}">{% if b.seats_left %}{{ b.seats_left }} seats left{% else %}Full{% endif %}</div></label></div>
+    {% empty %}<div class="col-12 text-secondary small">No open batch yet. Reserve now and we will place you in the next one.</div>{% endfor %}
+  </div>
+  {% endfor %}
+  {% for e in form.batch.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+</div>
+
+<div class="panel-w mb-4"><h4 class="mb-3"><span class="step-badge">2</span>Your details</h4>
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label fw-semibold">Full name</label><input class="form-control" value="{{ user.get_full_name }}" disabled></div>
+    <div class="col-md-6"><label class="form-label fw-semibold">Email</label><input class="form-control" value="{{ user.email }}" disabled></div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.phone %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.city %}</div>
+    <div class="col-12">{% include 'partials/_field.html' with field=form.notes %}</div>
+  </div></div>
+
+<div class="panel-w"><h4 class="mb-3"><span class="step-badge">3</span>Payment method</h4>
+  <div class="row g-3">
+    {% for key, label in gateways %}<div class="col-md-4"><input class="pay-in" type="radio" name="gateway" id="p-{{ key }}" value="{{ key }}" {% if forloop.first %}checked{% endif %}><label class="pay-card" for="p-{{ key }}"><b>{{ label }}</b></label></div>{% endfor %}
+  </div>
+  {% for key, label in gateways %}<div class="pay-info alert alert-light border mt-3 mb-0 {% if not forloop.first %}d-none{% endif %}" data-for="{{ key }}">
+    {% if key == 'easypaisa' and pay.easypaisa_number %}Send to <b>{{ pay.easypaisa_number }}</b> ({{ pay.easypaisa_account_name }}). Then add your transaction ID below so we can confirm faster.{% elif key == 'jazzcash' and pay.jazzcash_number %}Send to <b>{{ pay.jazzcash_number }}</b> ({{ pay.jazzcash_account_name }}). Then add your transaction ID below so we can confirm faster.{% elif key == 'bank' and pay.bank_account_number %}{{ pay.bank_name }} · A/C <b>{{ pay.bank_account_number }}</b> · {{ pay.bank_account_title }}{% if pay.bank_iban %} · IBAN {{ pay.bank_iban }}{% endif %}. Then add your transaction ID below so we can confirm faster.{% else %}The account details for this method are not set up yet. Please <a href="{% url 'website:contact' %}">contact us</a> before sending any money.{% endif %}</div>{% endfor %}
+  {% if pay.instructions %}<div class="small text-secondary mt-2">{{ pay.instructions }}</div>{% endif %}
+  <div class="row g-3 mt-1">
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.transaction_reference %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.sender_account_number %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.proof_file %}</div>
+    <div class="col-md-6"><label class="form-label fw-semibold" for="promo">Promo code</label>
+      <div class="input-group"><input id="promo" name="promo_code" class="form-control" placeholder="Have a code?" value="{{ form.promo_code.value|default:'' }}"><button type="button" id="applyPromo" class="btn btn-soft">Apply</button></div><div id="promoMsg" class="small"></div>{% for e in form.promo_code.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+  </div>
+  <div class="form-check mt-4"><input class="form-check-input" type="checkbox" id="et" name="terms" required {% if form.terms.value %}checked{% endif %}><label class="form-check-label" for="et">I agree to the {% legal_url 'terms' as tu %}{% if tu %}<a href="{{ tu }}" target="_blank" rel="noopener">terms</a>{% else %}terms{% endif %}{% legal_url 'refund' as ru %}{% if ru %} and the <a href="{{ ru }}" target="_blank" rel="noopener">refund policy</a>{% elif site.refund_days %} and the {{ site.refund_days }}-day refund policy{% endif %}</label>
+    {% for e in form.terms.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+</div>
+</div>
+
+<div class="col-lg-4"><div class="sum-card"><img id="sImg" src="" alt=""><h5 class="mt-3 mb-1" id="sTitle"></h5>
+  <div class="small text-secondary mb-3"><span id="sWeeks"></span> · <span id="sBatch"></span></div>
+  <div class="sum-row"><span>Course price</span><s class="text-secondary" id="sOrig"></s></div>
+  <div class="sum-row text-success"><span>Discount</span><span id="sDisc"></span></div>
+  <div class="sum-row text-success" id="sPromoRow" style="display:none"><span>Promo code</span><span id="sPromo"></span></div>
+  <div class="sum-row sum-total"><span>Total</span><span id="sTotal" class="price"></span></div>
+  <button class="btn btn-brand btn-lg w-100 mt-3">Confirm &amp; reserve seat</button>
+  <ul class="list-unstyled small text-secondary mt-3 mb-0">{% if site.refund_days %}<li>🛡️ {{ site.refund_days }}-day honest refund</li>{% endif %}{% if site.batch_cap %}<li>👥 Live batch capped at {{ site.batch_cap }}</li>{% endif %}<li>📁 Weekly review with your instructor</li></ul>
+</div></div></div></form></div></section>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% load jelly_tags %}
+<div class="col-md-6 col-xl-4"><div class="cc"><img src="{{ e.course.image_url }}" alt=""><div class="b">
+  <div class="d-flex justify-content-between"><span class="chip {{ e.course.level|level_class }}">{{ e.course.get_level_display }}</span><span class="chip {{ e.status|status_class }}">{{ e.get_status_display }}</span></div>
+  <h6 class="mt-1"><a href="{{ e.course.get_absolute_url }}" class="text-reset text-decoration-none" title="View on website">{{ e.course.title }}</a></h6>
+  {% if e.is_learning %}<div class="d-flex align-items-center gap-2"><div class="progress flex-fill"><div class="progress-bar" style="width:{{ e.progress_pct }}%"></div></div><small class="fw-bold">{{ e.progress_pct }}%</small></div>
+  <a href="{% url 'student:player' e.course.slug %}" class="btn btn-brand btn-sm mt-2">{% if e.status == 'completed' %}Review course{% else %}Continue learning{% endif %}</a>
+  {% else %}<p class="mut small mb-1">Complete your payment to unlock this course.</p><a href="{% url 'student:billing' %}" class="btn btn-brand btn-sm mt-1">Go to billing</a>{% endif %}
+</div></div></div>

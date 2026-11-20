@@ -1,0 +1,12 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a class="btn btn-brand btn-sm" href="{% url 'adminpanel:blog_new' %}"><span class="material-symbols-outlined">add</span> New article</a>{% endblock %}
+{% block content %}
+<div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}<div class="table-responsive"><table class="table"><thead><tr><th>Article</th><th>Category</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>
+{% for p in page %}<tr><td><b>{{ p.title|truncatechars:56 }}</b>{% if p.is_featured %} <span class="chip warm">Featured</span>{% endif %}<div class="mut small">{{ p.author_name|default:site.site_name }} · {{ p.read_time }} min read</div></td><td>{{ p.category_label }}</td><td class="text-nowrap">{{ p.published_at|date:"M j, Y" }}</td>
+<td>{% if not p.is_published %}<span class="chip warm">Draft</span>{% elif p.published_at > now %}<span class="chip">Scheduled</span>{% else %}<span class="chip green">Live</span>{% endif %}</td>
+<td class="text-nowrap"><a class="btn btn-soft btn-sm" href="{% url 'adminpanel:blog_edit' p.pk %}">Edit</a>{% if p.is_published and p.published_at <= now %} <a class="btn btn-soft btn-sm" href="{{ p.get_absolute_url }}" target="_blank">View</a>{% endif %}
+<form method="post" action="{% url 'adminpanel:blog_toggle' p.pk %}" class="d-inline">{% csrf_token %}<button class="btn btn-soft btn-sm">{% if p.is_published %}Unpublish{% else %}Publish{% endif %}</button></form>
+<form method="post" action="{% url 'adminpanel:blog_delete' p.pk %}" class="d-inline" data-confirm="Delete this article?">{% csrf_token %}<button class="ibtn del"><span class="material-symbols-outlined">delete</span></button></form></td></tr>
+{% empty %}<tr><td colspan="5" class="text-center mut py-4">No articles yet. <a href="{% url 'adminpanel:blog_new' %}">Write the first one</a>.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

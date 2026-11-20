@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-4"><form method="post" class="fc" novalidate>{% csrf_token %}<h5 class="mb-3">Add a student</h5>
+  <div class="row g-3"><div class="col-6">{% include 'partials/_field.html' with field=form.first_name %}</div><div class="col-6">{% include 'partials/_field.html' with field=form.last_name %}</div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.email %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.phone %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.password %}</div>
+  <div class="col-12"><div class="form-check">{{ form.ask_to_change }}<label class="form-check-label small" for="{{ form.ask_to_change.id_for_label }}">{{ form.ask_to_change.label }}</label></div></div>
+  <div class="col-12"><button class="btn btn-brand w-100">Create student account</button></div></div></form></div>
+<div class="col-lg-8"><div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}<div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Courses</th><th>Joined</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for u in page %}<tr><td><a href="{% url 'adminpanel:user_detail' u.pk %}" class="text-decoration-none" style="color:inherit">{% include 'dashboard/_person.html' with person=u %}</a></td><td>{{ u.n_courses }}</td><td>{{ u.date_joined|date:"M j, Y" }}</td><td><span class="chip {% if u.is_active %}green{% else %}red{% endif %}">{% if u.is_active %}Active{% else %}Inactive{% endif %}</span></td>
+<td><form method="post" action="{% url 'adminpanel:user_toggle' u.pk %}" data-confirm="{% if u.is_active %}Deactivate{% else %}Activate{% endif %} this student?">{% csrf_token %}<button class="btn btn-soft btn-sm">{% if u.is_active %}Deactivate{% else %}Activate{% endif %}</button></form></td></tr>
+{% empty %}<tr><td colspan="5" class="text-center mut py-4">No students found.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div></div></div>
+{% endblock %}

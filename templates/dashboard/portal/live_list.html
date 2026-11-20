@@ -1,0 +1,26 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a href="{% rurl 'live_create' %}" class="btn btn-brand btn-sm"><span class="material-symbols-outlined">add</span> Schedule class</a>{% endblock %}
+{% block content %}
+<div class="fc mb-4 d-flex align-items-center gap-3"><span class="sico t-b"><span class="material-symbols-outlined">videocam</span></span>
+  <div><b>Live classes, links and recordings</b><div class="mut">Add the Meet, Zoom or Teams link before class. After the class ends, upload the recording (a link or a video file) and enrolled students can watch it. Times are in Pakistan time ({% now "T" %}).</div></div></div>
+<div class="fc flush">
+  {% include 'dashboard/_toolbar.html' with current=status %}
+  <div class="table-responsive"><table class="table"><thead><tr><th>Class</th><th>When ({% now "T" %})</th><th>Platform</th><th>Meeting link</th><th>Status</th><th>Recording</th><th>Actions</th></tr></thead><tbody>
+  {% for c in page %}<tr>
+    <td><b>{{ c.title }}</b><div class="mut small">{{ c.course.title|truncatechars:42 }}{% if c.batch %} · batch {{ c.batch.start_date|date:"M j" }}{% endif %}</div></td>
+    <td>{{ c.starts_at|date:"D, j M" }}<div class="mut small">{{ c.starts_at|time:"g:i a" }} – {{ c.ends_at|time:"g:i a" }}</div></td>
+    <td>{{ c.get_platform_display }}</td>
+    <td>{% if c.meeting_link %}<div class="d-flex align-items-center gap-1"><span class="text-truncate d-inline-block" style="max-width:150px">{{ c.meeting_link }}</span><button type="button" class="ibtn" data-copy="{{ c.meeting_link }}" title="Copy link"><span class="material-symbols-outlined">content_copy</span></button></div>{% else %}<span class="chip warm">No link yet</span>{% endif %}</td>
+    <td><span class="chip {{ c.status|status_class }}">{% if c.status == 'live' %}● Live now{% else %}{{ c.status|capfirst }}{% endif %}</span></td>
+    <td>{% if c.has_recording %}<span class="chip green">Recording ready</span> <a class="ibtn" href="{% rurl 'recording' c.pk %}" title="Replace"><span class="material-symbols-outlined">upload</span></a>
+        {% elif c.status == 'ended' %}<a class="btn btn-brand btn-sm" href="{% rurl 'recording' c.pk %}"><span class="material-symbols-outlined">upload</span> Upload recording</a>
+        {% else %}<span class="mut small">After the class</span>{% endif %}</td>
+    <td><div class="d-flex gap-1"><a class="ibtn" href="{% rurl 'live_edit' c.pk %}" title="Edit"><span class="material-symbols-outlined">edit</span></a>
+      {% if c.status != 'ended' %}<form method="post" action="{% rurl 'live_end' c.pk %}" data-confirm="End this class now?">{% csrf_token %}<button class="ibtn" title="End class"><span class="material-symbols-outlined">stop_circle</span></button></form>{% endif %}
+      <form method="post" action="{% rurl 'live_delete' c.pk %}" data-confirm="Delete this class?">{% csrf_token %}<button class="ibtn del" title="Delete"><span class="material-symbols-outlined">delete</span></button></form></div></td></tr>
+  {% empty %}<tr><td colspan="7" class="text-center mut py-4">No classes here yet.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% include 'dashboard/_pagination.html' %}
+</div>
+{% endblock %}

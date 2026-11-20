@@ -1,0 +1,30 @@
+{% extends 'dashboard/base.html' %}
+{% load static jelly_tags %}
+{% block header_actions %}<a class="btn btn-soft btn-sm" href="?export=1"><span class="material-symbols-outlined">download</span> Export CSV</a>{% endblock %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Total earnings' value=k.earnings.value|pkr icon='payments' tone='y' trend=k.earnings.trend note=k.earnings.month|pkr|add:' this month' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Active students' value=k.students.value icon='groups' tone='g' trend=k.students.trend %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Completion rate' value=k.completion.value suffix='%' icon='workspace_premium' tone='b' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Average rating' value=k.rating.value icon='star' tone='y' note=k.rating.count|stringformat:'s'|add:' review(s)' %}</div></div>
+<div class="fc mb-4"><div class="fc-h"><h5>Earnings and new students, 12 months</h5></div><div style="position:relative;height:280px"><canvas id="pChart"></canvas></div></div>
+<div class="fc flush mb-4"><div class="fc-h px-4 pt-4"><h5>Per course</h5></div><div class="table-responsive"><table class="table"><thead><tr><th>Course</th><th>Students</th><th>Completed</th><th>Avg progress</th><th>Rating</th><th>Earned</th></tr></thead><tbody>
+{% for r in rows %}<tr><td><b>{{ r.course.title|truncatechars:44 }}</b><div class="mut small">{{ r.lectures }} lecture{{ r.lectures|pluralize }}</div></td><td>{{ r.learners }}</td><td>{{ r.completed }}</td><td><div class="d-flex align-items-center gap-2" style="min-width:120px"><div class="progress flex-fill"><div class="progress-bar" style="width:{{ r.avg_progress }}%"></div></div><small class="fw-bold">{{ r.avg_progress }}%</small></div></td><td>{% if r.n_reviews %}★ {{ r.rating }} ({{ r.n_reviews }}){% else %}-{% endif %}</td><td>{{ r.earned|pkr }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center mut py-4">No courses yet.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="fc flush"><div class="fc-h px-4 pt-4"><h5>Approved payments on your courses</h5></div><div class="table-responsive"><table class="table"><thead><tr><th>Date</th><th>Student</th><th>Course</th><th>Amount</th></tr></thead><tbody>
+{% for p in page %}<tr><td>{{ p.created_at|date:"M j, Y" }}</td><td>{% include 'dashboard/_person.html' with person=p.enrollment.user %}</td><td>{{ p.enrollment.course.title|truncatechars:38 }}</td><td><b>{{ p.amount|pkr }}</b></td></tr>{% empty %}<tr><td colspan="4" class="text-center mut py-4">No approved payments yet.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{{ chart|json_script:"chartData" }}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs-4.4.3/chart.umd.js' %}"></script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  const d = JSON.parse(document.getElementById('chartData').textContent), el = document.getElementById('pChart');
+  if (!el || !window.Chart) return;
+  new Chart(el, {data: {labels: d.labels, datasets: [
+    {type: 'bar', label: 'Earnings (Rs)', data: d.earnings, backgroundColor: 'rgba(27,95,168,.75)', borderRadius: 8, yAxisID: 'y'},
+    {type: 'line', label: 'New students', data: d.students, borderColor: '#17A360', backgroundColor: '#17A360', tension: .35, yAxisID: 'y1'}]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      scales: {y: {beginAtZero: true, ticks: {callback: v => 'Rs ' + Number(v).toLocaleString()}}, y1: {beginAtZero: true, position: 'right', grid: {drawOnChartArea: false}, ticks: {precision: 0}}}}});
+})();
+</script>
+{% endblock %}

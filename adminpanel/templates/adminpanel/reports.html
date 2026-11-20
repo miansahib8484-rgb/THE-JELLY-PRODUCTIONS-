@@ -1,0 +1,42 @@
+{% extends 'dashboard/base.html' %}
+{% load static jelly_tags %}
+{% block header_actions %}<div class="d-flex gap-2 flex-wrap"><a class="btn btn-soft btn-sm" href="{% url 'adminpanel:export' 'payments' %}"><span class="material-symbols-outlined">download</span> Payments CSV</a><a class="btn btn-soft btn-sm" href="{% url 'adminpanel:export' 'enrollments' %}"><span class="material-symbols-outlined">download</span> Enrollments CSV</a><a class="btn btn-soft btn-sm" href="{% url 'adminpanel:export' 'students' %}"><span class="material-symbols-outlined">download</span> Students CSV</a></div>{% endblock %}
+{% block content %}
+<div class="ftabs mb-3 d-flex gap-2 flex-wrap">{% for key, label in r.ranges %}<a href="?range={{ key }}{% if q %}&amp;q={{ q|urlencode }}{% endif %}" class="btn btn-sm {% if r.range == key %}btn-brand{% else %}btn-soft{% endif %}">{{ label }}</a>{% endfor %}</div>
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Revenue' value=r.revenue|pkr icon='payments' tone='y' note=r.range_label %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Approved payments' value=r.payments icon='verified' tone='g' note=r.avg_order|pkr|add:' average' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='New enrollments' value=r.new_enrollments icon='assignment' tone='b' note=r.range_label %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Completion rate' value=r.completion suffix='%' icon='workspace_premium' tone='g' note=r.range_label %}</div></div>
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-8"><div class="fc"><div class="fc-h"><h5>Monthly revenue and enrollments (12 months)</h5></div><div style="position:relative;height:280px"><canvas id="revChart"></canvas></div></div></div>
+  <div class="col-xl-4"><div class="fc"><div class="fc-h"><h5>Revenue by payment method</h5></div>{% if r.gateways %}<div style="position:relative;height:200px"><canvas id="gwChart"></canvas></div>{% for g in r.gateways %}<div class="mini py-2"><b class="flex-fill">{{ g.label }}</b><span>{{ g.total|pkr }}</span><span class="mut small">{{ g.n }}×</span></div>{% endfor %}{% else %}<p class="mut">No approved payments in this range.</p>{% endif %}</div></div></div>
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-6"><div class="fc"><h5 class="mb-3">Best-selling courses ({{ r.range_label|lower }})</h5><div class="table-responsive"><table class="table"><thead><tr><th>Course</th><th>Learners</th><th>Revenue</th></tr></thead><tbody>{% for c in r.by_course %}<tr><td>{{ c.title|truncatechars:34 }}</td><td>{{ c.learners }}</td><td>{{ c.revenue|default:0|pkr }}</td></tr>{% empty %}<tr><td colspan="3" class="mut text-center py-3">No sales in this range.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-xl-6"><div class="fc"><h5 class="mb-3">Enrollment funnel ({{ r.range_label|lower }})</h5>
+    {% for f in r.funnel %}<div class="mini py-2"><span class="chip {{ f.key|status_class }}">{{ f.label }}</span><div class="flex-fill"></div><b>{{ f.n }}</b></div>{% endfor %}
+    <h6 class="mt-3">Top rated</h6>{% for c in top %}<div class="mini py-2"><b class="flex-fill">{{ c.title|truncatechars:38 }}</b><span class="chip warm">★ {{ c.rating_avg }}</span></div>{% empty %}<p class="mut">No courses yet.</p>{% endfor %}</div></div></div>
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"><h5 class="mb-0">Student progress <span class="mut small">({{ r.range_label|lower }})</span></h5><form method="get" class="d-flex gap-2"><input type="hidden" name="range" value="{{ r.range }}"><input class="form-control form-control-sm" name="q" value="{{ q }}" placeholder="Search student or course"><button class="btn btn-soft btn-sm"><span class="material-symbols-outlined">search</span></button></form></div>
+<div class="fc flush"><div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Progress</th></tr></thead><tbody>
+{% for e in page %}<tr><td><a href="{% url 'adminpanel:user_detail' e.user.pk %}" class="text-decoration-none" style="color:inherit">{% include 'dashboard/_person.html' with person=e.user %}</a></td><td>{{ e.course.title|truncatechars:42 }}</td><td><div class="d-flex align-items-center gap-2" style="min-width:140px"><div class="progress flex-fill"><div class="progress-bar" style="width:{{ e.progress_pct }}%"></div></div><small class="fw-bold">{{ e.progress_pct }}%</small></div></td></tr>{% empty %}<tr><td colspan="3" class="mut text-center py-3">No learners yet.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{{ r.chart|json_script:"repData" }}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs-4.4.3/chart.umd.js' %}"></script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  if (!window.Chart) return;
+  const d = JSON.parse(document.getElementById('repData').textContent);
+  new Chart(document.getElementById('revChart'), {data: {labels: d.labels, datasets: [
+    {type: 'bar', label: 'Revenue (Rs)', data: d.revenue, backgroundColor: 'rgba(27,95,168,.75)', borderRadius: 8, yAxisID: 'y'},
+    {type: 'line', label: 'Enrollments', data: d.enrollments, borderColor: '#E0A916', backgroundColor: '#E0A916', tension: .35, yAxisID: 'y1'}]},
+    options: {responsive: true, maintainAspectRatio: false, interaction: {mode: 'index', intersect: false},
+      scales: {y: {beginAtZero: true, ticks: {callback: v => 'Rs ' + Number(v).toLocaleString()}}, y1: {beginAtZero: true, position: 'right', grid: {drawOnChartArea: false}, ticks: {precision: 0}}}}});
+  const g = document.getElementById('gwChart');
+  if (g) new Chart(g, {type: 'doughnut', data: {labels: d.gateway_labels, datasets: [{data: d.gateway_values, backgroundColor: ['#1B5FA8', '#E0A916', '#17A360', '#D6453B']}]}, options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom'}}}});
+})();
+</script>
+{% endblock %}

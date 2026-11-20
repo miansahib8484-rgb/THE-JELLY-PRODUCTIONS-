@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="fc flush mb-4"><div class="cover"></div><div class="pf"><img src="{{ user.profile.avatar_url }}" alt=""><div class="flex-fill pb-1"><h4 class="mb-0">{{ user.get_full_name|default:user.username }}</h4><span class="mut text-capitalize">{{ role }}{% if user.profile.title %} · {{ user.profile.title }}{% endif %}</span></div></div></div>
+<form method="post" enctype="multipart/form-data" class="fc" novalidate>{% csrf_token %}<h5 class="mb-3">Personal information</h5>
+<div class="row g-3">
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.first_name %}</div><div class="col-md-6">{% include 'partials/_field.html' with field=form.last_name %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.email %}</div><div class="col-md-6">{% include 'partials/_field.html' with field=form.phone %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.city %}</div><div class="col-md-6">{% include 'partials/_field.html' with field=form.country %}</div>
+  {% if role != 'student' %}<div class="col-12">{% include 'partials/_field.html' with field=form.title %}</div>{% endif %}
+  <div class="col-12">{% include 'partials/_field.html' with field=form.bio %}</div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.avatar %}</div>
+  <div class="col-12"><button class="btn btn-brand">Save changes</button></div></div></form>
+{% endblock %}

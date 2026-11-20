@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load jelly_tags %}
+{% block robots %}noindex,follow{% endblock %}
+{% block title %}Create your account{% endblock %}
+{% block content %}
+<section class="auth-split">
+{% include 'accounts/_aside.html' with seed='fieldnote-register' heading='Start learning from someone who has done the work.' sub='Create your account in two minutes. Reserve a seat whenever you are ready.' %}
+<div class="auth-main"><div class="auth-box"><h2 class="mb-1">Create your account</h2><p class="text-secondary mb-3">Already registered? <a href="{% url 'accounts:login' %}" class="fw-bold">Sign in</a></p>
+<form method="post" novalidate>{% csrf_token %}{% include 'partials/_honeypot.html' %}<input type="hidden" name="next" value="{{ next }}">
+<div class="seg mb-2">{% for r in form.account_type %}{{ r.tag }}<label for="{{ r.id_for_label }}">{% if r.data.value == 'student' %}🎓{% else %}🧑‍🏫{% endif %} {{ r.choice_label }}</label>{% endfor %}</div>
+<div class="form-section">Personal details</div><div class="row g-3">
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.first_name %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.last_name %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.email %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.phone %}</div>
+  <div class="col-md-4">{% include 'partials/_field.html' with field=form.date_of_birth %}</div>
+  <div class="col-md-4">{% include 'partials/_field.html' with field=form.city %}</div>
+  <div class="col-md-4">{% include 'partials/_field.html' with field=form.country %}</div></div>
+<div class="form-section">About your learning</div><div class="row g-3">
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.occupation %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.interested_course %}</div>
+  <div class="col-12"><label class="form-label fw-semibold d-block">{{ form.experience_level.label }}</label><div class="choice">{% for r in form.experience_level %}{{ r.tag }}<label for="{{ r.id_for_label }}">{{ r.choice_label }}</label>{% endfor %}</div></div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.goal %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.heard_from %}</div></div>
+<div class="form-section">Secure your account</div><div class="row g-3">
+  <div class="col-md-6"><label class="form-label fw-semibold" for="id_password1">Password</label><div class="pw-wrap">{{ form.password1 }}<button type="button" class="pw-toggle" data-pw="id_password1" aria-label="Show password">👁</button></div>
+    <div class="strength"><i></i></div><div class="small text-secondary mt-1" id="strLabel">Use 8+ characters with a number and a symbol</div>{% for e in form.password1.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+  <div class="col-md-6"><label class="form-label fw-semibold" for="id_password2">Confirm password</label><div class="pw-wrap">{{ form.password2 }}<button type="button" class="pw-toggle" data-pw="id_password2" aria-label="Show password">👁</button></div>{% for e in form.password2.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div></div>
+<div class="form-check mt-4">{{ form.terms }}<label class="form-check-label" for="id_terms">I agree to the {% legal_url 'terms' as tu %}{% if tu %}<a href="{{ tu }}" target="_blank" rel="noopener">Terms of use</a>{% else %}Terms of use{% endif %} and {% legal_url 'privacy' as pu %}{% if pu %}<a href="{{ pu }}" target="_blank" rel="noopener">Privacy policy</a>{% else %}Privacy policy{% endif %}</label>{% for e in form.terms.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</div>
+<div class="form-check mt-2 mb-4">{{ form.newsletter }}<label class="form-check-label" for="id_newsletter">Send me the monthly dispatch (no spam)</label></div>
+<button class="btn btn-brand btn-lg w-100">Create my account</button></form></div></div></section>
+{% endblock %}

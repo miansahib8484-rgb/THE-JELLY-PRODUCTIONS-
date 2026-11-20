@@ -1,0 +1,9 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}<div class="table-responsive"><table class="table"><thead><tr><th>From</th><th>Topic</th><th>Message</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for s in page %}<tr><td><b>{{ s.name }}</b><div class="mut small"><a href="mailto:{{ s.email }}">{{ s.email }}</a></div></td><td>{{ s.topic|default:"-" }}</td><td style="white-space:normal;max-width:320px">{{ s.message|truncatechars:140 }}</td><td>{{ s.created_at|date:"M j" }}</td>
+<td><span class="chip {{ s.status|status_class }}">{{ s.get_status_display }}</span></td>
+<td>{% if s.applicant %}<form method="post" action="{% url 'adminpanel:teacher_application_approve' s.pk %}" class="mb-1" data-confirm="Make {{ s.name }} a teacher?">{% csrf_token %}<button class="btn btn-brand btn-sm w-100">Approve as teacher</button></form>{% endif %}<form method="post" action="{% url 'adminpanel:contact_update' s.pk %}" class="d-flex gap-1">{% csrf_token %}<select name="status" class="form-select form-select-sm" style="width:120px" aria-label="Status">{% for k, v in s.STATUS_CHOICES %}<option value="{{ k }}" {% if k == s.status %}selected{% endif %}>{{ v }}</option>{% endfor %}</select><button class="btn btn-soft btn-sm">Save</button></form></td></tr>
+{% empty %}<tr><td colspan="6" class="text-center mut py-4">Inbox is empty.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

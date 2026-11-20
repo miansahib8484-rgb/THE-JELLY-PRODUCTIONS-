@@ -1,0 +1,16 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row"><div class="col-lg-8"><form method="post" class="fc" novalidate>{% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="row g-3">
+    <div class="col-12">{% include 'partials/_field.html' with field=form.title %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.course %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.batch %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.starts_at %}</div>
+    <div class="col-md-6">{% include 'partials/_field.html' with field=form.duration_minutes %}</div>
+    <div class="col-md-4">{% include 'partials/_field.html' with field=form.platform %}</div>
+    <div class="col-md-8">{% include 'partials/_field.html' with field=form.meeting_link %}</div>
+    <div class="col-12"><button class="btn btn-brand">Save class</button> <a href="{% rurl 'live' %}" class="btn btn-soft">Cancel</a></div>
+  </div></form></div></div>
+{% endblock %}

@@ -1,0 +1,3 @@
+{% load jelly_tags %}{% ticker_items as items %}{% if items %}<div class="ticker" role="marquee" aria-label="Announcements"><div class="ticker-track">
+{% for i in "ab" %}{% for t in items %}<span class="tk">{{ t }}</span>{% endfor %}{% endfor %}
+</div></div>{% endif %}

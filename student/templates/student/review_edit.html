@@ -1,0 +1,5 @@
+{% extends 'dashboard/base.html' %}
+{% block header_actions %}<a href="{% url 'student:reviews' %}" class="btn btn-soft btn-sm">← My reviews</a>{% endblock %}
+{% block content %}
+<form method="post" class="fc" style="max-width:640px" novalidate>{% csrf_token %}<h5 class="mb-3">{{ review.course.title }}</h5><div class="row g-3"><div class="col-12">{% include 'partials/_field.html' with field=form.rating %}</div><div class="col-12">{% include 'partials/_field.html' with field=form.comment %}</div><div class="col-12"><button class="btn btn-brand">Save changes</button></div></div></form>
+{% endblock %}

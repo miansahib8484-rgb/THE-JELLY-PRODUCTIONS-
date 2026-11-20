@@ -1,0 +1,13 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-7"><form method="post" enctype="multipart/form-data" class="fc" novalidate>{% csrf_token %}
+  <p class="mut">{{ obj.title }} · {{ obj.course.title }} · {{ obj.starts_at|date:"D j M, g:i a" }}</p>
+  <div class="seg mb-3">{% for r in form.rec_type %}{{ r.tag }}<label for="{{ r.id_for_label }}">{{ r.choice_label }}</label>{% endfor %}</div>
+  <div id="recLinkBox" class="{% if form.rec_type.value == 'file' %}d-none{% endif %} mb-3">{% include 'partials/_field.html' with field=form.video_url %}</div>
+  <div id="recFileBox" class="{% if form.rec_type.value != 'file' %}d-none{% endif %} mb-3">{% include 'partials/_field.html' with field=form.video_file %}<div class="mut small mt-1">Large files can take a while to upload. MP4 works best.</div></div>
+  <button class="btn btn-brand">Publish recording</button> <a href="{% rurl 'live' %}" class="btn btn-soft">Cancel</a></form></div>
+<div class="col-lg-5">{% if existing %}<div class="fc"><h5>Current recording</h5>
+  {% if existing.video_url %}<p class="text-break">{{ existing.video_url }}</p>{% else %}<p>Uploaded file: {{ existing.video_file.name }}</p>{% endif %}
+  <form method="post" action="{% rurl 'recording_delete' obj.pk %}" data-confirm="Remove this recording?">{% csrf_token %}<button class="btn btn-outline-danger btn-sm">Remove recording</button></form></div>{% endif %}</div></div>
+{% endblock %}

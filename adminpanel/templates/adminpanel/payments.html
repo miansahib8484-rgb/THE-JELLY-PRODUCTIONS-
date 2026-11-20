@@ -1,0 +1,17 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4">{% include 'dashboard/_stat.html' with title='Pending review' value=totals.pending icon='hourglass_top' tone='y' %}</div>
+  <div class="col-md-4">{% include 'dashboard/_stat.html' with title='Approved total' value=totals.paid|pkr icon='verified' tone='g' %}</div>
+  <div class="col-md-4">{% include 'dashboard/_stat.html' with title='Rejected' value=totals.failed icon='cancel' tone='r' %}</div></div>
+<div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}<div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Method</th><th>Reference</th><th>Amount</th><th>Proof</th><th>Status</th><th>Review</th></tr></thead><tbody>
+{% for p in page %}<tr><td>{% include 'dashboard/_person.html' with person=p.enrollment.user %}</td><td>{{ p.enrollment.course.title|truncatechars:30 }}</td><td>{{ p.get_gateway_display }}</td>
+<td>{{ p.transaction_reference|default:"-" }}{% if p.repeated_ref %}<div class="small text-danger fw-semibold" title="Another payment uses the same transaction id">Same transaction id used on another payment</div>{% endif %}{% if p.sender_account_number %}<div class="mut small">from {{ p.sender_account_number }}</div>{% endif %}</td><td>{{ p.amount|pkr }}{% if p.promo_code %}<div class="mut small">{{ p.promo_code }}</div>{% endif %}</td>
+<td>{% if p.proof_file %}<a class="ibtn" href="{{ p.proof_url }}" target="_blank" title="View proof"><span class="material-symbols-outlined">receipt_long</span></a>{% else %}-{% endif %}</td>
+<td><span class="chip {{ p.status|status_class }}">{{ p.get_status_display }}</span>{% if p.admin_note %}<div class="mut small">{{ p.admin_note }}</div>{% endif %}</td>
+<td>{% if p.status == 'pending' %}<div class="d-flex gap-1 align-items-center">
+  <form method="post" action="{% url 'adminpanel:payment_review' p.pk %}">{% csrf_token %}<input type="hidden" name="action" value="approve"><button class="btn btn-brand btn-sm">Approve</button></form>
+  <form method="post" action="{% url 'adminpanel:payment_review' p.pk %}" class="d-flex gap-1">{% csrf_token %}<input type="hidden" name="action" value="reject"><input name="note" class="form-control form-control-sm" style="width:130px" placeholder="Reason"><button class="btn btn-soft btn-sm">Reject</button></form></div>{% else %}-{% endif %}</td></tr>
+{% empty %}<tr><td colspan="8" class="text-center mut py-4">No payments here.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

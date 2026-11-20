@@ -1,0 +1,9 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-3 mb-4"><div class="col-md-6">{% include 'dashboard/_stat.html' with title='Average rating' value=avg|floatformat:1 icon='star' tone='y' note='across all courses' %}</div><div class="col-md-6">{% include 'dashboard/_stat.html' with title='Total reviews' value=total icon='rate_review' tone='b' %}</div></div>
+<div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}<div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Rating</th><th>Review</th><th>Date</th><th></th></tr></thead><tbody>
+{% for r in page %}<tr><td><b>{{ r.display_name }}</b></td><td>{{ r.course.title|truncatechars:28 }}</td><td class="text-warning text-nowrap">{{ r.rating|stars }}</td><td style="max-width:340px">{{ r.comment|truncatechars:140 }}</td><td class="text-nowrap">{{ r.created_at|date:"M j, Y" }}</td>
+<td><form method="post" action="{% url 'adminpanel:review_delete' r.pk %}" data-confirm="Delete this review? The course rating will be recalculated.">{% csrf_token %}<button class="ibtn del" title="Delete"><span class="material-symbols-outlined">delete</span></button></form></td></tr>
+{% empty %}<tr><td colspan="6" class="text-center mut py-4">No reviews found.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

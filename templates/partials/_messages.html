@@ -1,0 +1,9 @@
+{% if messages %}
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:2000;margin-top:76px">
+{% for m in messages %}
+  <div class="toast show align-items-center border-0 text-bg-{% if m.tags == 'error' %}danger{% elif m.tags == 'success' %}success{% elif m.tags == 'warning' %}warning{% else %}dark{% endif %}" role="alert" data-autohide="5200">
+    <div class="d-flex"><div class="toast-body">{{ m }}</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button></div>
+  </div>
+{% endfor %}
+</div>
+{% endif %}

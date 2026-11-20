@@ -1,0 +1,10 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}<div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Batch</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
+{% for e in page %}<tr><td>{% include 'dashboard/_person.html' with person=e.user %}</td><td>{{ e.course.title|truncatechars:38 }}</td><td>{% if e.batch %}{{ e.batch.start_date|date:"M j" }}{% else %}-{% endif %}</td><td>{{ e.enrolled_at|date:"M j, Y" }}</td>
+<td><span class="chip {{ e.status|status_class }}">{{ e.get_status_display }}</span></td>
+<td><div class="d-flex gap-1">{% if e.status == 'pending_payment' %}<form method="post" action="{% url 'adminpanel:enrollment_mark_paid' e.pk %}">{% csrf_token %}<button class="btn btn-brand btn-sm">Mark paid</button></form>{% endif %}
+{% if e.status == 'pending_payment' %}<form method="post" action="{% url 'adminpanel:enrollment_cancel' e.pk %}" data-confirm="Cancel this enrollment and release the seat?">{% csrf_token %}<button class="btn btn-soft btn-sm">Cancel</button></form>{% elif e.status == 'active' or e.status == 'completed' %}<form method="post" action="{% url 'adminpanel:enrollment_refund' e.pk %}" data-confirm="Refund this student? The payment is marked refunded and the seat is released.">{% csrf_token %}<button class="btn btn-soft btn-sm">Refund</button></form>{% endif %}</div></td></tr>
+{% empty %}<tr><td colspan="6" class="text-center mut py-4">No enrollments found.</td></tr>{% endfor %}</tbody></table></div>{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

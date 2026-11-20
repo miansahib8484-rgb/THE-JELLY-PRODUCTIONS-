@@ -1,0 +1,17 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a href="{% url 'teacher:students' %}" class="btn btn-soft btn-sm">← All students</a>{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-xl-4"><div class="fc text-center"><img class="avatar mb-3" style="width:84px;height:84px" src="{{ person.profile.avatar_url }}" alt="">
+    <h4 class="mb-0">{{ person.get_full_name|default:person.username }}</h4><div class="mut mb-2">{{ person.email }}</div><span class="chip {{ e.status|status_class }}">{{ e.get_status_display }}</span>
+    <hr><div class="row text-start g-2 small"><div class="col-5 mut">Course</div><div class="col-7">{{ e.course.title }}</div><div class="col-5 mut">Batch</div><div class="col-7">{% if e.batch %}{{ e.batch.start_date|date:"M j, Y" }}{% else %}-{% endif %}</div><div class="col-5 mut">Enrolled</div><div class="col-7">{{ e.enrolled_at|date:"M j, Y" }}</div>
+      <div class="col-5 mut">Phone</div><div class="col-7">{{ person.profile.phone|default:"-" }}</div><div class="col-5 mut">City</div><div class="col-7">{{ person.profile.city|default:"-" }}</div><div class="col-5 mut">Goal</div><div class="col-7">{{ person.profile.goal|default:"-" }}</div>
+      <div class="col-5 mut">Payment</div><div class="col-7">{% if payment %}<span class="chip {{ payment.status|status_class }}">{{ payment.get_status_display }}</span>{% else %}-{% endif %}</div></div>
+    <div class="d-grid gap-2 mt-3"><a class="btn btn-brand" href="{% url 'teacher:announcements' %}?course={{ e.course.pk }}">Message this course</a>{% if certificate %}<a class="btn btn-soft" href="{{ certificate.file_url }}" target="_blank">View certificate</a>{% elif e.is_learning %}<a class="btn btn-soft" href="{% url 'teacher:certificates' %}">Issue certificate</a>{% endif %}</div></div></div>
+  <div class="col-xl-8"><div class="fc"><div class="fc-h"><h5>Progress</h5><div class="d-flex align-items-center gap-2" style="min-width:200px"><div class="progress flex-fill"><div class="progress-bar" style="width:{{ e.progress_pct }}%"></div></div><b>{{ e.progress_pct }}%</b></div></div>
+    {% for m in modules %}<div class="mb-3"><div class="d-flex justify-content-between"><b>Module {{ forloop.counter }}: {{ m.module.title }}</b><span class="mut small">{{ m.done }}/{{ m.total }} lectures</span></div><div class="progress mb-2" style="height:6px"><div class="progress-bar" style="width:{{ m.pct }}%"></div></div>
+      {% for l, done in m.lectures %}<div class="lesson small"><span class="material-symbols-outlined {% if done %}text-success{% else %}mut{% endif %}">{% if done %}check_circle{% else %}radio_button_unchecked{% endif %}</span><span class="flex-fill">{{ l.title }}</span><span class="mut">{{ l.duration_label }}</span></div>{% endfor %}</div>{% empty %}<p class="mut mb-0">This course has no curriculum yet.</p>{% endfor %}</div></div></div>
+{% if review %}<div class="fc mb-4"><h5>Their review</h5><div class="text-warning">{{ review.rating|stars }}</div><p class="mb-0">{{ review.comment }}</p></div>{% endif %}
+{% if other %}<h5 class="mb-3">Also learning with you</h5><div class="fc flush"><table class="table"><tbody>{% for o in other %}<tr><td>{{ o.course.title }}</td><td><span class="chip {{ o.status|status_class }}">{{ o.get_status_display }}</span></td><td>{{ o.progress_pct }}%</td><td><a class="btn btn-soft btn-sm" href="{% url 'teacher:student_detail' o.pk %}">View</a></td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% endblock %}

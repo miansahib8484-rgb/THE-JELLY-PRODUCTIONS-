@@ -1,0 +1,7 @@
+{% comment %}
+Usage: include "dashboard/_stat.html" with title="Students" value=12 icon="groups" tone="b" note="this month" live="students" trend=8
+live  = key from /admin-panel/api/summary/ (the number refreshes by itself)
+trend = percent change vs last month (omit for none)
+{% endcomment %}
+<div class="fc stat"><div class="d-flex justify-content-between"><div><div class="mut fw-semibold">{{ title }}</div><div class="val" {% if live %}data-live="{{ live }}"{% endif %}>{{ value }}{{ suffix }}</div></div><span class="sico t-{{ tone|default:'b' }}"><span class="material-symbols-outlined">{{ icon }}</span></span></div>
+{% if note %}<div class="mut small">{{ note }}</div>{% endif %}{% if trend is not None and trend != '' %}<div class="small mt-1"><span class="chip {% if trend >= 0 %}green{% else %}red{% endif %}">{% if trend >= 0 %}▲{% else %}▼{% endif %} {{ trend }}%</span> <span class="mut">vs last month</span></div>{% endif %}</div>

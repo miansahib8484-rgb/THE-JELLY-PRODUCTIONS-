@@ -1,0 +1,4 @@
+<section class="section-sm bg-mist"><div class="container"><div class="nl"><div class="row align-items-center g-4">
+<div class="col-lg-7"><h2 class="mb-2">One dispatch a month. No marketing blast.</h2><p class="mb-0">New posts, mentor notes, and the occasional honest opinion about what's not worth learning right now.</p></div>
+<div class="col-lg-5"><form class="d-flex gap-2" method="post" action="{% url 'website:newsletter_subscribe' %}">{% csrf_token %}{% include 'partials/_honeypot.html' %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" class="form-control" placeholder="Your email" aria-label="Email" required><button class="btn btn-dark" style="border-radius:12px">Subscribe</button></form></div>
+</div></div></div></section>

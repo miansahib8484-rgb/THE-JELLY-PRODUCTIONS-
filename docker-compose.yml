@@ -1,0 +1,49 @@
+# Shared by `web` and `cron`: the same image, the same settings.
+x-app: &app
+  build: .
+  image: jelly-django-app
+  env_file: .env
+  environment:
+    DATABASE_URL: postgres://jelly:${POSTGRES_PASSWORD:-change-me}@db:5432/jelly
+    REDIS_URL: redis://redis:6379/1
+    DJANGO_BEHIND_PROXY: "1"
+  restart: unless-stopped
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: jelly
+      POSTGRES_USER: jelly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}      # set POSTGRES_PASSWORD in .env or the shell for anything but a local test
+    volumes: [pgdata:/var/lib/postgresql/data]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jelly -d jelly"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7
+    restart: unless-stopped
+  web:
+    <<: *app
+    # `depends_on: [db]` alone only waits for the container to START: the first `migrate` could run before PostgreSQL accepts connections
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_started}
+    # Bound to localhost only: put nginx/Caddy (TLS) in front. DJANGO_BEHIND_PROXY=1 trusts X-Forwarded-* headers,
+    # so gunicorn must never be reachable directly from the internet.
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: [media:/app/media, private_media:/app/private_media]
+  # The two housekeeping jobs the README asks you to run from cron, so a Docker install does not need a separate cron entry:
+  #   expire_reservations  releases seats held by unpaid reservations after RESERVATION_HOLD_HOURS (default 72)
+  #   clearsessions        deletes expired login sessions (Django never does this by itself)
+  cron:
+    <<: *app
+    depends_on:
+      web: {condition: service_healthy}          # the web container runs `migrate` first
+    command: ["sh", "-c", "while true; do python manage.py expire_reservations; python manage.py clearsessions; sleep 3600; done"]
+    healthcheck: {disable: true}
+    volumes: [media:/app/media, private_media:/app/private_media]
+volumes: {pgdata: {}, media: {}, private_media: {}}

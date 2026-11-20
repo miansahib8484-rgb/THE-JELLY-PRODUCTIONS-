@@ -1,0 +1,12 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a class="btn btn-soft btn-sm" href="{% qs export='1' page='' %}"><span class="material-symbols-outlined">download</span> Export CSV</a>{% endblock %}
+{% block content %}
+<div class="fc flush">{% include 'dashboard/_toolbar.html' with current=status %}
+<div class="px-4 pb-3 d-flex gap-2 flex-wrap align-items-center"><span class="mut small">Course:</span><a href="{% qs course='' page='' %}" class="btn btn-sm {% if not course %}btn-brand{% else %}btn-soft{% endif %}">All</a>{% for c in courses %}<a href="{% qs course=c.slug page='' %}" class="btn btn-sm {% if course == c.slug %}btn-brand{% else %}btn-soft{% endif %}">{{ c.title|truncatechars:28 }}</a>{% endfor %}</div>
+<div class="table-responsive"><table class="table"><thead><tr><th>Student</th><th>Course</th><th>Batch</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>
+{% for e in page %}<tr><td>{% include 'dashboard/_person.html' with person=e.user %}</td><td>{{ e.course.title|truncatechars:38 }}</td><td>{% if e.batch %}{{ e.batch.start_date|date:"M j" }}{% else %}-{% endif %}</td>
+<td><div class="d-flex align-items-center gap-2" style="min-width:140px"><div class="progress flex-fill"><div class="progress-bar" style="width:{{ e.progress_pct }}%"></div></div><small class="fw-bold">{{ e.progress_pct }}%</small></div></td>
+<td><span class="chip {{ e.status|status_class }}">{{ e.get_status_display }}</span></td><td><a class="btn btn-soft btn-sm" href="{% url 'teacher:student_detail' e.pk %}">View</a></td></tr>{% empty %}<tr><td colspan="6" class="text-center mut py-4">No students found.</td></tr>{% endfor %}</tbody></table></div>
+{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{# one upcoming class card: c = LiveClass #}
+<div class="col-md-6 col-xl-4"><div class="fc d-flex flex-column gap-2">
+  <div class="d-flex justify-content-between"><span class="chip {% if c.status == 'live' %}red{% else %}green{% endif %}">{% if c.status == 'live' %}● Live now{% else %}Upcoming{% endif %}</span><span class="mut small">{{ c.duration_minutes }} min</span></div>
+  <h5 class="mb-0">{{ c.title }}</h5><div class="mut small">{{ c.course.title }}</div>
+  <div class="d-flex align-items-center gap-2 mt-1"><span class="sico t-b" style="width:42px;height:42px"><span class="material-symbols-outlined">schedule</span></span>
+    <div><b>{{ c.starts_at|date:"D, j M" }}, {{ c.starts_at|time:"g:i a" }}</b><div class="mut small">Pakistan time ({% now "T" %}) · {{ c.get_platform_display }}</div></div></div>
+  <div class="small">{% if c.status == 'live' %}<b class="text-danger">Class is live now</b>{% else %}Starts in <b data-countdown="{{ c.starts_at.isoformat }}"></b>{% endif %}</div>
+  <div class="mt-auto pt-2">{% include 'student/_join.html' %}</div>
+</div></div>

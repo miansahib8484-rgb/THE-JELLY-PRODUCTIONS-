@@ -1,0 +1,19 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-8">
+  <div class="ratio ratio-16x9 rounded-4 overflow-hidden mb-3 bg-dark">
+    {% if current.embed_url %}<iframe src="{{ current.embed_url }}" title="{{ current.title }}" allowfullscreen></iframe>
+    {% elif current.video_url %}<div class="d-flex align-items-center justify-content-center text-white p-4"><a class="btn btn-light" href="{{ current.video_url }}" target="_blank" rel="noopener">Open lecture video</a></div>
+    {% else %}<div class="d-flex align-items-center justify-content-center text-white-50">No video for this lesson yet.</div>{% endif %}
+  </div>
+  {% if current %}<div class="fc"><div class="d-flex justify-content-between align-items-center flex-wrap gap-2"><div><h4 class="mb-1">{{ current.title }}</h4><div class="mut">{{ current.module.title }} · {{ current.duration_label }}</div></div>
+    <form method="post" action="{% url 'student:toggle_lecture' current.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-brand">Mark as done / not done</button></form></div></div>{% endif %}
+</div>
+<div class="col-lg-4"><div class="fc"><b>{{ progress }}% complete</b><div class="progress my-2 mb-3"><div class="progress-bar" style="width:{{ progress }}%"></div></div>
+  {% for m in modules %}<div class="mut small fw-bold mt-3 mb-1">{{ m.module.title }}</div>
+    {% for l in m.lectures %}<a href="?lecture={{ l.obj.pk }}" class="lesson {% if l.done %}done{% endif %}" style="color:inherit"><span class="material-symbols-outlined">{% if l.done %}check_circle{% else %}radio_button_unchecked{% endif %}</span><span>{{ l.obj.title }}</span></a>{% endfor %}
+  {% empty %}<p class="mut">The curriculum is being prepared.</p>{% endfor %}</div>
+  {% if recaps %}<div class="fc mt-4"><h6>Live session recordings</h6>{% for c in recaps %}<a class="lesson" href="{% url 'student:watch' c.pk %}" style="color:inherit"><span class="material-symbols-outlined">play_circle</span><span>{{ c.title }}<br><small class="mut">{{ c.starts_at|date:"j M" }}</small></span></a>{% endfor %}</div>{% endif %}
+</div></div>
+{% endblock %}

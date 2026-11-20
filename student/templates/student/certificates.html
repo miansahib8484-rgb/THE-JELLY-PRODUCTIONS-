@@ -1,0 +1,8 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="fc mb-4 d-flex align-items-center gap-3"><span class="sico t-y"><span class="material-symbols-outlined">workspace_premium</span></span><div><b>Your certificates</b><div class="mut">When you finish a course, your teacher uploads your certificate here. View or download it any time.</div></div></div>
+<div class="row g-4">{% for c in certs %}<div class="col-md-6 col-xl-4"><div class="cc"><div class="cert-prev">{% if c.is_image %}<img src="{{ c.file_url }}" alt="Certificate">{% else %}<span class="material-symbols-outlined">workspace_premium</span>{% endif %}</div>
+  <div class="b"><span class="chip warm align-self-start">Certificate</span><h6 class="mb-0 mt-1">{{ c.course.title }}</h6><div class="mut small">Issued {{ c.issued_on|date:"M j, Y" }}</div><div class="mut small">Code <code>{{ c.code }}</code> · <a href="{{ c.get_verify_url }}" target="_blank" rel="noopener">Public check page</a></div>
+  <div class="d-flex gap-2 mt-2"><a class="btn btn-brand btn-sm" href="{{ c.file_url }}" target="_blank">View</a><a class="btn btn-soft btn-sm" href="{{ c.download_url }}">Download</a></div></div></div></div>
+{% empty %}<div class="col-12"><div class="fc text-center mut">No certificates yet. Finish a course and your teacher will upload it here.</div></div>{% endfor %}</div>
+{% endblock %}

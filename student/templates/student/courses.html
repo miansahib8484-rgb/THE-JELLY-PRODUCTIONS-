@@ -1,0 +1,6 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="fc mb-4 p-0">{% include 'dashboard/_toolbar.html' with current=status %}</div>
+<div class="row g-4">{% for e in page %}{% include 'student/_course_card.html' %}{% empty %}<div class="col-12"><div class="fc text-center mut">Nothing here yet. <a href="{% url 'website:courses' %}">Browse courses</a>.</div></div>{% endfor %}</div>
+<div class="fc flush mt-4">{% include 'dashboard/_pagination.html' %}</div>
+{% endblock %}

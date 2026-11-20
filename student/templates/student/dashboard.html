@@ -1,0 +1,61 @@
+{% extends 'dashboard/base.html' %}
+{% load static jelly_tags %}
+{% block page_header %}{% endblock %}
+{% block content %}
+<div class="fc welcome mb-4"><div>
+{% if next_class %}{% with c=next_class %}
+  <span class="chip mb-2" style="background:rgba(255,255,255,.18);color:#fff">{% if c.status == 'live' %}● Live now{% else %}Next live class{% endif %}</span>
+  <h2 class="mb-1">{{ c.title }}</h2><p class="mb-2">{{ c.course.title }}</p>
+  <div class="d-flex flex-wrap gap-3 mb-3"><span><span class="material-symbols-outlined">event</span> <b>{{ c.starts_at|date:"D, j M" }}</b></span><span><span class="material-symbols-outlined">schedule</span> <b>{{ c.starts_at|time:"g:i a" }}</b></span><span><span class="material-symbols-outlined">timer</span> {% if c.status == 'live' %}In progress{% else %}Starts in <b data-countdown="{{ c.starts_at.isoformat }}"></b>{% endif %}</span></div>
+  <div class="d-flex gap-2 flex-wrap">{% if c.can_join %}<a class="btn btn-light fw-bold" href="{{ c.meeting_link }}" target="_blank" rel="noopener">Join class</a>{% elif not c.meeting_link %}<button class="btn btn-light" disabled>Link will be shared soon</button>{% else %}<button class="btn btn-light" disabled>Opens 10 min before</button>{% endif %}<a href="{% url 'student:live' %}" class="btn btn-outline-light">All classes</a></div>
+{% endwith %}{% else %}
+  <h2 class="mb-2">Hello, {{ user.first_name|default:user.username }}!</h2>
+  <p>{% if next_batch %}Your batch of <b>{{ next_batch.course.title }}</b> starts on <b>{{ next_batch.batch.start_date|date:"D, j M" }}</b> (in <b data-countdown="{{ next_batch.batch.start_date|date:'Y-m-d' }}T00:00:00"></b>).{% else %}No class is scheduled yet. Your teacher will add the next live class soon.{% endif %}</p>
+  <div class="d-flex gap-2 flex-wrap"><a href="{% url 'student:live' %}" class="btn btn-light fw-bold">Live classes</a><a href="{% url 'website:courses' %}" class="btn btn-outline-light">Browse courses</a></div>{% endif %}
+</div><span class="big">videocam</span></div>
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Enrolled courses' value=k.courses.value icon='auto_stories' tone='b' live='courses' note=k.courses.completed|stringformat:'s'|add:' completed' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Lectures completed' value=k.lectures.done icon='task_alt' tone='g' live='lectures' note=k.lectures.note %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Average progress' value=k.avg.value suffix='%' icon='trending_up' tone='y' live='avg' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Certificates' value=k.certs.value icon='workspace_premium' tone='r' live='certs' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Classes this week' value=k.week.value icon='event' tone='b' live='week' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Study streak' value=k.streak.value icon='local_fire_department' tone='y' live='streak' note='consecutive days with a lecture done' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Payments to action' value=k.due.value icon='receipt_long' tone='r' live='due' note=k.due.amount|pkr|add:' outstanding' %}</div>
+  <div class="col-sm-6 col-xl-3">{% include 'dashboard/_stat.html' with title='Unread notifications' value=k.unread.value icon='notifications' tone='g' live='unread' %}</div></div>
+
+{% if resume %}<div class="fc mb-4 d-flex flex-wrap align-items-center gap-3"><img src="{{ resume.enrollment.course.image_url }}" alt="" style="width:92px;height:62px;object-fit:cover;border-radius:10px"><div class="flex-fill"><div class="mut small">Pick up where you left off</div><b>{{ resume.lecture.title }}</b><div class="mut small">{{ resume.enrollment.course.title|truncatechars:50 }} · Module: {{ resume.lecture.module.title|truncatechars:30 }}</div>
+  <div class="progress mt-2" style="height:6px;max-width:320px"><div class="progress-bar" style="width:{{ resume.pct }}%"></div></div></div><a class="btn btn-brand" href="{% url 'student:player' resume.enrollment.course.slug %}?lecture={{ resume.lecture.pk }}"><span class="material-symbols-outlined">play_arrow</span> Resume</a></div>{% endif %}
+
+<div class="row g-4 mb-4">
+  <div class="col-xl-8"><div class="fc"><div class="fc-h"><h5>Your learning, last 14 days</h5><span class="mut small">{{ activity.total }} lecture{{ activity.total|pluralize }} completed</span></div><div style="position:relative;height:240px"><canvas id="sChart"></canvas></div></div></div>
+  <div class="col-xl-4"><div class="fc"><div class="fc-h"><h5>What to do next</h5></div>
+    {% for a in attention %}<a class="mini text-decoration-none" style="color:var(--tx)" href="{% if a.arg %}{% url a.url a.arg %}{% else %}{% url a.url %}{% endif %}"><span class="sico t-{{ a.tone }}" style="width:40px;height:40px"><span class="material-symbols-outlined">{{ a.icon }}</span></span><div class="flex-fill small fw-semibold">{{ a.text }}</div></a>{% empty %}<div class="text-center py-4"><span class="sico t-g mx-auto mb-2"><span class="material-symbols-outlined">task_alt</span></span><div class="mut">You are all caught up.</div></div>{% endfor %}</div></div></div>
+
+{% if announcements %}<div class="fc mb-4"><div class="fc-h"><h5>Announcements from your teachers</h5></div>
+{% for a in announcements %}<div class="mini"><span class="sico t-b"><span class="material-symbols-outlined">campaign</span></span><div class="flex-fill"><b>{{ a.title }}</b><div>{{ a.body }}</div><div class="mut small">{{ a.teacher.get_full_name|default:"Your teacher" }} · {{ a.course.title|truncatechars:34 }} · {{ a.created_at|timesince }} ago</div></div></div>{% endfor %}</div>{% endif %}
+
+<div class="row g-4 mb-4"><div class="col-xl-6"><div class="fc"><div class="fc-h"><h5>Your class timings</h5><a href="{% url 'student:live' %}" class="btn btn-soft btn-sm">All classes</a></div>
+  {% for c in timings %}<div class="mini"><span class="sico t-y"><span class="material-symbols-outlined">schedule</span></span><div class="flex-fill"><b>{{ c.course.title|truncatechars:34 }}</b><div class="mut small">{{ c.title|truncatechars:30 }} · {{ c.starts_at|date:"D, j M" }} · <b>{{ c.starts_at|time:"g:i a" }}</b></div></div><span class="mut small" data-countdown="{{ c.starts_at.isoformat }}"></span></div>
+  {% empty %}<p class="mut mb-0">No classes scheduled.</p>{% endfor %}</div></div>
+<div class="col-xl-6"><div class="fc"><div class="fc-h"><h5>New recordings</h5><a href="{% url 'student:live' %}?status=recordings" class="btn btn-soft btn-sm">All recordings</a></div>
+  {% for c in recordings %}<div class="mini"><span class="sico t-g"><span class="material-symbols-outlined">play_circle</span></span><div class="flex-fill"><b>{{ c.title }}</b><div class="mut small">{{ c.starts_at|date:"D, j M" }} · {{ c.course.title|truncatechars:26 }}</div></div><a href="{% url 'student:watch' c.pk %}" class="btn btn-soft btn-sm">Watch</a></div>
+  {% empty %}<p class="mut mb-0">No recordings yet.</p>{% endfor %}</div></div></div>
+
+{% if certificates %}<div class="fc mb-4"><div class="fc-h"><h5>My certificates</h5><a href="{% url 'student:certificates' %}" class="btn btn-soft btn-sm">All</a></div>{% for c in certificates %}<div class="mini"><span class="sico t-y"><span class="material-symbols-outlined">workspace_premium</span></span><div class="flex-fill"><b>{{ c.course.title }}</b><div class="mut small">Issued {{ c.issued_on|date:"M j, Y" }}</div></div><a class="btn btn-soft btn-sm" href="{{ c.file_url }}" target="_blank">View</a></div>{% endfor %}</div>{% endif %}
+
+<div class="d-flex justify-content-between align-items-center mb-3"><h5 class="mb-0">Continue learning</h5><a href="{% url 'student:courses' %}" class="btn btn-soft btn-sm">All my courses</a></div>
+<div class="row g-4">{% for e in learning %}{% include 'student/_course_card.html' %}{% empty %}<div class="col-12"><div class="fc text-center mut">You have no active courses. <a href="{% url 'website:courses' %}">Browse courses</a>.</div></div>{% endfor %}</div>
+{{ activity|json_script:"actData" }}{{ course_progress|json_script:"cpData" }}
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs-4.4.3/chart.umd.js' %}"></script>
+<script nonce="{{ request.csp_nonce }}">
+(function () {
+  const d = JSON.parse(document.getElementById('actData').textContent), el = document.getElementById('sChart');
+  if (!el || !window.Chart) return;
+  new Chart(el, {type: 'bar', data: {labels: d.labels, datasets: [{label: 'Lectures completed', data: d.values, backgroundColor: 'rgba(23,163,96,.75)', borderRadius: 6}]},
+    options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {y: {beginAtZero: true, ticks: {precision: 0}}}}});
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="row"><div class="col-xl-9">
+  <div class="ratio ratio-16x9 rounded-4 overflow-hidden mb-3 bg-dark">
+    {% if rec.video_file %}<video controls preload="metadata" src="{{ rec.file_url }}"></video>
+    {% elif rec.embed_url %}<iframe src="{{ rec.embed_url }}" title="{{ c.title }}" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    {% else %}<div class="d-flex align-items-center justify-content-center"><a class="btn btn-light" href="{{ rec.video_url }}" target="_blank" rel="noopener">Open recording</a></div>{% endif %}
+  </div>
+  <div class="fc"><h4>{{ c.title }}</h4><div class="mut">{{ c.course.title }} · {{ c.starts_at|date:"D j M Y, g:i a" }} {% now "T" %}</div></div>
+  <a href="{% url 'student:live' %}?status=recordings" class="btn btn-soft mt-3">Back to recordings</a></div></div>
+{% endblock %}

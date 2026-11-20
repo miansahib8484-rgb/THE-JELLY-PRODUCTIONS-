@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block meta_description %}{{ post.excerpt|default:post.title }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.title }}{% endblock %}
+{% block og_description %}{{ post.excerpt|default:post.title }}{% endblock %}
+{% block og_image %}{% if post.cover %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.image }}">{% endif %}{% endblock %}
+{% block content %}
+<section class="section-sm bg-mist"><div class="container"><nav><ol class="breadcrumb mb-0 mx-auto" style="max-width:760px"><li class="breadcrumb-item"><a href="{% url 'website:home' %}">Home</a></li><li class="breadcrumb-item"><a href="{% url 'website:blog' %}">Blog</a></li><li class="breadcrumb-item active">{{ post.title|truncatechars:50 }}</li></ol></nav></div></section>
+<section class="section-sm bg-mist"><div class="container"><article class="mx-auto" style="max-width:760px">
+<span class="chip mb-3">{{ post.category_label }}</span>
+<h1 class="mb-3" style="font-size:clamp(1.8rem,4vw,2.8rem)">{{ post.title }}</h1>
+<div class="text-secondary mb-4">{{ post.author_name|default:site.site_name }} · {{ post.date|date:"M j, Y" }} · {{ post.read_time }} min read</div>
+<img class="w-100 rounded-4 mb-4" style="aspect-ratio:16/9;object-fit:cover" src="{{ post.image }}" alt="">
+<div class="panel-w blog-body">{{ post.html|safe }}</div></article></div></section>
+<section class="section bg-sky"><div class="container"><div class="sec-head"><span class="chip">Keep reading</span><h2>More from the blog</h2></div>
+<div class="row g-4">{% for post in more %}{% include 'website/_post_card.html' %}{% endfor %}</div></div></section>
+{% endblock %}

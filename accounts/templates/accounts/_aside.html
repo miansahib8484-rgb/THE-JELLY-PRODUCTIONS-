@@ -1,0 +1,8 @@
+{% load jelly_tags %}{% page_hero seed|default:'fieldnote-auth' as bg %}<aside class="auth-aside" style="background-image:linear-gradient(rgba(10,42,72,.9),rgba(27,95,168,.8)){% if bg %},url({{ bg }}){% endif %}">
+  <span class="hero-chip sun align-self-start">{{ site.site_name }}</span><h2>{{ heading }}</h2><p class="lead" style="color:#dbe8f7">{{ sub }}</p>
+  {% site_mentor as m %}<ul class="list-unstyled mb-0">
+    <li><span>🎯</span><div><b>Real feedback on real work</b>Your instructors review your actual work.</div></li>
+    <li><span>👥</span><div><b>Small live batches</b>{% if site.batch_cap %}Capped at {{ site.batch_cap }} so you are never lost.{% else %}Small enough that you are never lost.{% endif %}</div></li>
+    <li><span>🛡️</span><div>{% if site.refund_days %}<b>{{ site.refund_days }}-day honest refund</b>Not for you? Get your money back.{% else %}<b>Honest refunds</b>Not for you? We make it right.{% endif %}</div></li>
+  </ul>
+</aside>

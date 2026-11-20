@@ -1,0 +1,29 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+<div class="row g-4"><div class="col-lg-8"><div class="fc"><div class="row g-3">
+  {% if form.non_field_errors %}<div class="col-12"><div class="alert alert-danger mb-0">{{ form.non_field_errors }}</div></div>{% endif %}
+  <div class="col-12">{% include 'partials/_field.html' with field=form.title %}</div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.subtitle %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.category %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.level %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.duration_weeks %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.hours_per_week %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.price %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.original_price %}</div>
+  <div class="col-12">{% include 'partials/_field.html' with field=form.description %}</div>
+  <div class="col-md-6">{% include 'partials/_field.html' with field=form.preview_video_id %}</div>
+  {% if role == 'admin' %}<div class="col-md-6">{% include 'partials/_field.html' with field=form.teacher %}</div>{% endif %}
+  <div class="col-12 d-flex flex-wrap gap-4">
+    <div class="form-check form-switch">{{ form.is_published }}<label class="form-check-label" for="id_is_published">{{ form.is_published.label }}</label></div>
+    {% if role == 'admin' %}<div class="form-check form-switch">{{ form.is_featured }}<label class="form-check-label" for="id_is_featured">{{ form.is_featured.label }}</label></div>{% endif %}
+  </div>
+  <div class="col-12"><button class="btn btn-brand">Save course</button> <a href="{% rurl 'courses' %}" class="btn btn-soft">Cancel</a></div>
+</div></div></div>
+<div class="col-lg-4"><div class="fc"><h5>Course image</h5><p class="mut small">This image is shown on the website course cards. Best size 1280 x 800 (16:10), JPG or PNG, up to 5 MB.</p>
+  <img id="thumbPrev" class="w-100 rounded-3 mb-3 {% if not course.thumbnail %}d-none{% endif %}" src="{% if course.thumbnail %}{{ course.thumbnail.url }}{% endif %}" alt="Course image" style="aspect-ratio:16/10;object-fit:cover">
+  {{ form.thumbnail }}{% for e in form.thumbnail.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}
+  {% if course %}<hr><a href="{% rurl 'builder' course.slug %}" class="btn btn-soft w-100 mb-2">Curriculum and batches</a><a href="{{ course.get_absolute_url }}" target="_blank" class="btn btn-soft w-100">View on website</a>{% endif %}
+</div></div></div></form>
+{% endblock %}

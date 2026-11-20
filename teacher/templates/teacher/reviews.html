@@ -1,0 +1,11 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block content %}
+<div class="row g-4"><div class="col-lg-4"><div class="fc mb-4"><h5 class="mb-3">Rating summary</h5><div class="text-center"><div class="display-4 fw-bold">{{ avg }}</div><div class="stars fs-5 text-warning">{{ avg|stars }}</div><p class="mut">Based on {{ total }} review{{ total|pluralize }}</p></div>
+{% for n, c, pct in dist %}<a href="{% qs rating=n page='' %}" class="d-flex align-items-center gap-2 mb-2 text-decoration-none" style="color:inherit"><small style="width:24px">{{ n }}★</small><div class="progress flex-fill"><div class="progress-bar" style="width:{{ pct }}%"></div></div><small>{{ c }}</small></a>{% endfor %}</div>
+{% if per_course %}<div class="fc"><h5 class="mb-3">By course</h5>{% for c in per_course %}<a href="{% qs course=c.slug page='' %}" class="mini text-decoration-none" style="color:inherit"><div class="flex-fill small fw-semibold">{{ c.title|truncatechars:32 }}</div><span class="chip warm">★ {{ c.a|floatformat:1 }}</span><span class="mut small">{{ c.n }}</span></a>{% endfor %}</div>{% endif %}</div>
+<div class="col-lg-8"><div class="fc flush"><div class="fc-h px-4 pt-4"><h5>Reviews{% if course or rating %} (filtered){% endif %}</h5>{% if course or rating %}<a href="?" class="btn btn-soft btn-sm">Clear filters</a>{% endif %}</div>
+<div class="px-4 pb-2 d-flex gap-2 flex-wrap">{% for c in courses %}<a href="{% qs course=c.slug page='' %}" class="btn btn-sm {% if course == c.slug %}btn-brand{% else %}btn-soft{% endif %}">{{ c.title|truncatechars:26 }}</a>{% endfor %}</div><div class="px-4">
+{% for r in page %}<div class="mini"><div class="flex-fill"><b>{{ r.display_name }}</b> <span class="mut small">· {{ r.created_at|date:"M j, Y" }}</span><div class="mut small">{{ r.course.title }}</div><p class="mb-0">{{ r.comment }}</p></div><div class="stars text-warning">{{ r.rating|stars }}</div></div>{% empty %}<p class="mut py-3">No reviews match.</p>{% endfor %}</div>
+{% include 'dashboard/_pagination.html' %}</div></div></div>
+{% endblock %}

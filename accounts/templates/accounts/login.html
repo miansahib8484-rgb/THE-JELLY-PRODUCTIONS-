@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block robots %}noindex,follow{% endblock %}
+{% block title %}{{ role_info.label }} sign in{% endblock %}
+{% block content %}
+<section class="auth-split">
+{% include 'accounts/_aside.html' with seed='fieldnote-login' heading=role_info.heading sub=role_info.sub %}
+<div class="auth-main"><div class="auth-box narrow"><h2 class="mb-3">{{ role_info.label }} sign in</h2>
+<nav class="seg role-tabs mb-3" aria-label="Choose how you sign in">{% for t in tabs %}<a href="{{ t.url }}"{% if t.active %} class="active" aria-current="page"{% endif %}><span aria-hidden="true">{{ t.icon }}</span> {{ t.label }}</a>{% endfor %}</nav>
+<p class="text-secondary mb-4">{{ role_info.intro }} You will land on your own dashboard.</p>
+<form method="post" novalidate>{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><input type="hidden" name="role" value="{{ role }}">
+{% if error %}<div class="alert alert-danger py-2" role="alert">{{ error }}{% if error_tab %}<div class="mt-2"><a class="btn btn-sm btn-brand" href="{{ error_tab }}">Go to the {{ error_tab_label }} sign-in</a></div>{% endif %}</div>{% endif %}
+<div class="mb-3">{% include 'partials/_field.html' with field=form.username %}</div>
+<div class="mb-3"><div class="d-flex justify-content-between"><label class="form-label fw-semibold" for="id_password">Password</label><a class="small" href="{% url 'accounts:password_reset' %}">Forgot password?</a></div>
+<div class="pw-wrap">{{ form.password }}<button type="button" class="pw-toggle" data-pw="id_password" aria-label="Show password">👁</button></div></div>
+<div class="form-check mb-4">{{ form.remember }}<label class="form-check-label" for="id_remember">{{ form.remember.label }}</label></div>
+<button class="btn btn-brand btn-lg w-100 mb-3">Sign in as {{ role_info.label|lower }}</button></form>
+<hr>{% if role == 'student' %}<div class="text-center">New here? <a href="{% url 'accounts:register' %}" class="fw-bold">Create a free account</a></div>
+{% elif role == 'teacher' %}<div class="text-center">Want to teach with us? <a href="{% url 'accounts:register' %}?type=teacher" class="fw-bold">Apply as a teacher</a></div>
+{% else %}<div class="text-center small text-secondary">Administrator accounts are created by the school owner.</div>{% endif %}</div></div></section>
+{% endblock %}

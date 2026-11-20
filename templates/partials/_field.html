@@ -1,0 +1,5 @@
+{# Renders label + input + errors. Usage: {% include "partials/_field.html" with field=form.email %} #}
+<label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+{{ field }}
+{% if field.help_text %}<div class="small text-secondary mt-1">{{ field.help_text }}</div>{% endif %}
+{% for e in field.errors %}<div class="text-danger small mt-1">{{ e }}</div>{% endfor %}

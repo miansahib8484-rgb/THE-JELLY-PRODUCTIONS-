@@ -1,0 +1,19 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - run: pip install -r requirements.txt pyflakes pyyaml bandit pip-audit
+      - run: python -m pyflakes $(git ls-files '*.py' | grep -v -e /migrations/ -e core/apps.py)      # unused imports / names (apps.py imports signals on purpose)
+      - run: DJANGO_DEBUG=1 python manage.py check
+      - run: DJANGO_DEBUG=1 python manage.py makemigrations --check --dry-run                                                          # a model change without a migration fails here
+      - name: Production settings check
+        run: python manage.py check --deploy
+        env: {DJANGO_SECRET_KEY: "ci-only-secret-key-not-for-production-0123456789abcdef", DJANGO_ALLOWED_HOSTS: "example.com", DJANGO_CSRF_TRUSTED_ORIGINS: "https://example.com"}
+      - run: bandit -r accounts adminpanel config core student teacher website -x '*/tests*.py,*/migrations/*' -ll      # static security scan: fails on medium+ findings
+      - run: pip-audit -r requirements.txt                                                                          # fails when a pinned package has a known vulnerability
+      - run: python manage.py test

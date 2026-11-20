@@ -1,0 +1,25 @@
+{% extends 'dashboard/base.html' %}
+{% load jelly_tags %}
+{% block header_actions %}<a href="{% rurl 'course_create' %}" class="btn btn-brand btn-sm"><span class="material-symbols-outlined">add</span> Add course</a>{% endblock %}
+{% block content %}
+<div class="fc flush">
+  {% include 'dashboard/_toolbar.html' with current=status %}
+  <div class="table-responsive"><table class="table"><thead><tr><th>Course</th><th>Level</th>{% if role == 'admin' %}<th>Instructor</th>{% endif %}<th>Students</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  {% for c in page %}<tr>
+    <td><div class="person"><img src="{{ c.image_url }}" alt="" style="width:64px;height:40px;border-radius:8px;object-fit:cover"><div><b>{{ c.title|truncatechars:48 }}</b><small>{{ c.category }}</small></div></div></td>
+    <td><span class="chip {{ c.level|level_class }}">{{ c.get_level_display }}</span></td>
+    {% if role == 'admin' %}<td>{{ c.teacher.get_full_name|default:"-" }}</td>{% endif %}
+    <td>{{ c.n_students }}</td>
+    <td>{{ c.price|pkr }}{% if c.original_price %} <s class="mut small">{{ c.original_price|pkr }}</s>{% endif %}</td>
+    <td><span class="chip {% if c.is_published %}green{% else %}warm{% endif %}">{% if c.is_published %}Live on website{% else %}Draft{% endif %}</span></td>
+    <td><div class="d-flex gap-1">
+      <a class="ibtn" href="{% rurl 'builder' c.slug %}" title="Curriculum and batches"><span class="material-symbols-outlined">construction</span></a>
+      <a class="ibtn" href="{% rurl 'course_edit' c.slug %}" title="Edit"><span class="material-symbols-outlined">edit</span></a>
+      <form method="post" action="{% rurl 'course_toggle' c.slug %}">{% csrf_token %}<button class="ibtn" title="{% if c.is_published %}Hide from website{% else %}Publish{% endif %}"><span class="material-symbols-outlined">{% if c.is_published %}visibility_off{% else %}visibility{% endif %}</span></button></form>
+      <form method="post" action="{% rurl 'course_delete' c.slug %}" data-confirm="Delete this course?">{% csrf_token %}<button class="ibtn del" title="Delete"><span class="material-symbols-outlined">delete</span></button></form>
+    </div></td></tr>
+  {% empty %}<tr><td colspan="7" class="text-center mut py-4">No courses yet. <a href="{% rurl 'course_create' %}">Add your first course</a>.</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% include 'dashboard/_pagination.html' %}
+</div>
+{% endblock %}
