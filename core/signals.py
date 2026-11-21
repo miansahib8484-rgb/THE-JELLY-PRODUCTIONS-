@@ -14,8 +14,11 @@ log = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_profile(sender, instance, created, **kwargs):
+def create_profile(sender, instance, created, raw=False, **kwargs):
     """Every user gets a Profile. Superusers are admins."""
+    if raw:
+        return
+
     profile, _ = Profile.objects.get_or_create(user=instance)
     if created and instance.is_superuser and profile.role != 'admin':
         profile.role = 'admin'

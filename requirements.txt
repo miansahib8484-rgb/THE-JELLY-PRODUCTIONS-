@@ -8,3 +8,4 @@ gunicorn==23.0.0
 # optional, only when you use them (see .env.example). The Dockerfile already installs both:
 #   psycopg[binary]==3.2.3   -> PostgreSQL via DATABASE_URL
 #   redis==5.2.0             -> shared cache / rate limiting via REDIS_URL
+psycopg[binary]==3.2.3
